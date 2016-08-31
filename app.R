@@ -6,10 +6,13 @@ library(dplyr)
 library(png)
 library(jpeg)
 library(ggplot2)
+library(shinyjs)
+library(leaflet)
 
 # Load data
-Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/hello-world/master/AssetCatCount.csv")
-Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/hello-world/master/AssetCatPercent.csv")
+Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Count.csv")
+Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
+
 
 #clean up colnames
 colnames(Dat.AssetPercent) <- c("Row.Labels", "Affordable Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
@@ -124,14 +127,77 @@ ui <- fluidPage(
   theme = shinytheme("united"),
   mainPanel(
     tabsetPanel(
-      tabPanel(h4("About"), 
+      tabPanel(h4("Methodology"), 
                tabsetPanel(
-                 tabPanel("Introduction"),
-                 tabPanel("Methodology"), imageOutput("methodology"))
-      ),
-      tabPanel(h4("Step 1: Two Red Bananas"),
+                 tabPanel("Framework",
+                          h4("Query Purpose"),
+                          tags$ol(
+                            tags$li("What is the problem/question you are trying to solve?"),
+                            tags$li("Where did it come from? Who or what initiated the query?"),
+                            tags$li("Where does the problem exist - public/private domain. Who is currently responsible for an intervention and what might that look like?"),
+                            tags$li("How is this analysis helpful?"),
+                            tags$li("What data sets do you have access to relevant to the problem?"),
+                            tags$li("What fields are in each of the data sources?"),
+                            tags$li("How many people/addresses/faciliites/entities/jursidictions does the data contain?"),
+                            tags$li("For this problem, what % of entities are at risk or have resources to be intervened?")),
+                          h4("Data Governance & Maturity"),
+                          tags$ol(
+                            tags$li("What analysis has been done thus far and what conclusions has it drawn? Give credit where credit is due."),
+                            tags$li("For the data sets that you have access to - who is responsible for the data (which organization and person)?"),
+                            tags$li("Is the data accessible outside the department? Is there a VPN?"),
+                            tags$li("What security policies and considerations need to be in place for each of the data sources? (HIPPA, FERPA, etc)"),
+                            tags$li("How is the data stored?"),
+                            tags$li("How accessible is the data that's required"),
+                            tags$li("Do you have data that is both relevant and sufficient to solve the problem?"),
+                            tags$li("How is the data quality?"),
+                            tags$li("How often is the data collected?"),
+                            tags$li("What is the level of granularity for the data sources?"),
+                            tags$li("How much history is stored? How are updates handled?"),
+                            tags$li("How integrated are the different data sources?"),
+                            tags$li("What data privacy policies are in place?"),
+                            tags$li("How well documented are the data?")),
+                          h4("Next Steps"),
+                          tags$ol(
+                            tags$li("What (if any) questions did this analysis answer or bring insight to?"),
+                            tags$li("What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"),
+                            tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
+                          h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")))),
+      tabPanel(h4("Two Red Bananas"),
                tabsetPanel(
-                 tabPanel("Problem Definition"),
+                 tabPanel("Tab Overview",
+                          h4("Problem Definition"),
+                          tags$ol(
+                            tags$li(c("Problem Definition: Current analysis has effectively shown the concentration of poverty 
+                                    and lack of resources throughout the city of Syracuse. When poverty, unemployment, lack 
+                                    of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a 
+                                    common trend appears: two large, curvature areas arc across the North and Southwest. In 
+                                    meetings, these areas are often described as", tags$div(HTML(paste(tags$span(style="color:red", 
+                                    "two large, red bananas")))), "(hence the tab name). Although accurate in relaying where social 
+                                    issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there 
+                                    a way to use data to further differentiate and delineate the needs within these neighborhoods?")),
+                            tags$li("Leads: A preliminary review of the analysis done was humbling. Analysts from the Syracuse University's 
+                                    Community Geography Department, CNY Fair Housing, the City of Syracuse's Dept. of Neighborhood 
+                                    and Business Development, Home HeadQuarters and numerous other sources (a small portion summarised below) captures
+                                    the long and dedicated conversation taken place thus far. The above question came out of 
+                                    numerous meetings with J. Robinson and S. Edelstein about how to further and not simply duplicate this conversation."),
+                            tags$li("This tab's analysis hopes to (2) further differntiate and define physical assets and need in specific geographical
+                                    areas and (2) offer an overview of access points for interventions.")),
+                          h4("Data Governance & Maturity"),
+                          tags$ol("Physical Assets: TheSPAD data is stored in excel form at the SOCPA office. SPAD data is 
+                                  recorded by Syracuse Police Department data, permitting data, Syracuse.com data and drive around 
+                                  data. SPAD data is on the asset level. Ex) DestiNY may exist within one parcel but has hundreds of 
+                                  assets within it. SPAD data captures every asset on a parcel. SPAD data is point in time data. Date 
+                                  of when the asset was last updated or addes is recorded within the excel file."),
+                          tags$ol("City's Access Points: "),
+                          fixedRow(
+                            column(12, selectInput(inputId = "redBananasSelect", 
+                                                   label = h4("Snapshots of Previous Research"), 
+                                                   choices = c("Opportunity Indices Part 1", "Opportunity Indices Part 2", "Banks and Lending", "Redlining"), 
+                                                   selected = "Redlining"))),
+                          
+                          #Vertical space
+                          fixedRow(column(12, imageOutput("redBananasPic")))),
+                 
                  tabPanel("Physical Assets", 
                           h4("CLICK & DRAG over points of interest for further information!"),
                           tags$ol(
@@ -143,14 +209,34 @@ ui <- fluidPage(
                           
                           # Feature selection
                           fixedRow(
-                            column(4, selectInput(inputId = "Input1", label = "Neighborhood Asset", choices = featureList2, selected = "Banks and Lending")),
-                            column(4, selectInput(inputId = "Input2", label = "Neighborhood Health Indicator", choices = featureList3, selected = "Median Income (in dollars)")),
-                            column(4, radioButtons("picture", "Syracuse Census Tracts:", c("Median H.H. Income", "Unemployment", "Reference Sheet")))),
+                            column(6, selectInput(inputId = "Input1", 
+                                                  label = "Neighborhood Asset", 
+                                                  choices = featureList2, 
+                                                  selected = "Banks and Lending")),
+                            column(6, selectInput(inputId = "Input2", 
+                                                  label = "Neighborhood Health Indicator", 
+                                                  choices = featureList3, 
+                                                  selected = "Median Income (in dollars)"))),
+                          #column(4, radioButtons("picture", "Syracuse Census Tracts:", c("Median H.H. Income", "Unemployment", "Reference Sheet")))),
                           
                           # First row
                           fixedRow(
-                            column(6, plotlyOutput("Plot1", height = "450px"), verbatimTextOutput("click1"), plotlyOutput("Plot2", height="450px")),
-                            column(6, imageOutput("myImage")))))))))
+                            column(6, plotlyOutput("Plot1", height = "400px"), 
+                                   verbatimTextOutput("click1"), 
+                                   plotlyOutput("Plot2", height="400px")),
+                            column(6, leafletOutput("AssetMap1", height = "800px")))),
+                 tabPanel("City's Access Points",
+                          h4("Problem Definition: What neighborhoods are accessible for public, place-based intervention?"),
+                          h4("Property Data"),
+                          fixedRow(column(4, selectInput(inputId = "Accessible", label = "Accessible Properties", choices = c("SIDA", "OSIDA", "Land Bank", "City-owned", "Seizable"))),
+                                   column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = c("Zombie", "Vacant & Tax Current"))),
+                                   column(4, selectInput(inputId = "Problem", label = "Problem Properties", c("Dilapidated", "Lead", "Underused Corner Properties")))),
+                          h4("Dis/Investment Data"),
+                          fixedRow(
+                            column(4, selectInput(inputId = "Census", label = "Neighborhood Health Indicator", choices = c("Unemployment", "Affordability", "Income"))),
+                            column(4, selectInput(inputId = "Investment", label = "Neighborhood Investment and Assets", choices = c("Affordable Housing", "Commercial Corridors")))),
+                          fixedRow(
+                            column(12, leafletOutput("AccessMap1", height = "575px")))))))))
 
 # server.R definition
 server <- function(input, output, session){
@@ -158,10 +244,53 @@ server <- function(input, output, session){
   #########ABOUT##############
   
   #########METHODOLOGY########
-  output$methodology <- renderImage({})
+  output$myMethod1 <- renderImage({list(
+    src = "Understanding-Syracuse/Images/Method1.png",
+    filetype = "image/png",
+    alt = "Drats! Something went wrong D:"
+  )})
+  
+  # Create a space for maps
+  output$myMethod2 <- renderImage({list(
+    src = "Understanding-Syracuse/Images/Method2.png",
+    filetype = "image/png",
+    alt = "Drats! Something went wrong D:"
+  )})
+  
+  output$redBananasPic <- renderImage({
+    if (input$redBananasSelect == "Opportunity Indices Part 1") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Opportunity Indices_Page1.png",
+        contentType = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    } else if (input$redBananasSelect == "Opportunity Indices Part 2") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Opportunity Indices_Page2.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Banks and Lending") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Banks and Lending.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Redlining") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Redlining.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
     
+  }, deleteFile = FALSE)
+  
+  
   #########PHYSICAL ASSETS####
-    # Observes the second feature input for a change
+  # Observes the second feature input for a change
   observeEvent(c(input$Input2, input$Input1),{
     # Create a convenience data.frame which can be used for charting
     plot1.df <- data.frame(Dat.AssetPercent[,input$Input2],
@@ -229,30 +358,41 @@ server <- function(input, output, session){
       dat.hover[c(3,4,5)]
     })
     
-    # Create a contour plot of the number of malignant cases
-    output$myImage <- renderImage({
-      if (input$picture == "Median H.H. Income") {
-        return(list(
-          src = "Picture1.png",
-          contentType = "image/png",
-          alt = "Drats! Something went wrong D:"
-        ))
-      } else if (input$picture == "Unemployment") {
-        return(list(
-          src = "Picture.png",
-          filetype = "image/png",
-          alt = "Drats! Something went wrong D:"
-        ))
-      }
-      else if (input$picture == "Reference Sheet") {
-        return(list(
-          src = "Local_Assets.png",
-          filetype = "image/png",
-          alt = "Drats! Something went wrong D:"
-        ))
-      }
-      
-    }, deleteFile = FALSE)
+    # Create a space for maps
+    #output$myImage <- renderImage({
+    # if (input$picture == "Median H.H. Income") {
+    #  return(list(
+    #   src = "Understanding-Syracuse/Images/Picture1.png",
+    #  contentType = "image/png",
+    # alt = "Drats! Something went wrong D:"
+    #   ))
+    #} else if (input$picture == "Unemployment") {
+    # return(list(
+    #  src = "Understanding-Syracuse/Images/Picture.png",
+    # filetype = "image/png",
+    #alt = "Drats! Something went wrong D:"
+    #   ))
+    #}
+    #else if (input$picture == "Reference Sheet") {
+    # return(list(
+    #  src = "Understanding-Syracuse/Images/Local_Assets.png",
+    # filetype = "image/png",
+    #alt = "Drats! Something went wrong D:"
+    #  ))
+    #}
+    
+    # }, deleteFile = FALSE)
+    output$AssetMap1 <- renderLeaflet({
+      leaflet() %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron")
+    })
+    #########CITY ACCESSIBILITY####
+    output$AccessMap1 <- renderLeaflet({
+      leaflet() %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron")
+    })
   })
   
 }
