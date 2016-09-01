@@ -11,10 +11,12 @@ library(leaflet)
 library(sp)
 library(rgdal)
 library(maptools)
-library(maps)
+library(tigris)
+library(acs)
+library(stringr) # to pad fips codes
 
-
-# Load data
+# Datasets - ASSETS 
+#Load Datasets (Assets)
 Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Count.csv")
 Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
 Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/NonResAssets.csv")
@@ -23,6 +25,40 @@ Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Occupied", "blue", Dat.NonRes$Color)
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "No Information", "gray", Dat.NonRes$Color)
+
+#Round up Percents
+Dat.AssetPercent[,c(2:28,31:34)] <- round(100*Dat.AssetPercent[,c(2:28,31:34)], 2)
+Dat.AssetCount[,c(2:28,31:34)] <- round(100*Dat.AssetCount[,c(2:28,31:34)], 2)
+
+#as numeric
+Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
+Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
+
+#Cut off Totals
+Dat.AssetCount <- Dat.AssetCount[c(1:55),]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
+
+# DATAFRAME - CENSUS INFORMATION
+#Download ACS 2014 Data
+ACS14 <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/ACS14.csv")
+ACS14$CensusTract3 <- as.character(ACS14$CensusTract3)
+
+
+#clean up colnames
+colnames(ACS14) <- c("CensusTract", "CensusTract2", "CensusTract3", "Population (16 Plus)", "MOE_Population_16Plus",
+                     "Percent of Population in the Labor Force", "MOE_Population_LaborForce", "Percent of Population Employed", 
+                     "MOE_Population_Employed", "Unemployment Rate", "MOE_UnemploymentRate", "Total Number of Households", 
+                     "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)", "MOE_MeanIncome_dollars",
+                     "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
+                     "# Rental Occupied Households", "RONoVehicle", "PercentRONoVehicle", "Total # of Households", "Percent of Households with No Vehicle") 
+
+
+#ACS INFO Merged
+Dat.AssetCount <- merge(Dat.AssetCount, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
+Dat.AssetCount <- Dat.AssetCount[, c(1:41, 57:64)]
+
+Dat.AssetPercent <- merge(Dat.AssetPercent, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
+Dat.AssetPercent <- Dat.AssetPercent[, c(1:41, 57:64)]
 
 #clean up colnames
 colnames(Dat.AssetPercent) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
@@ -33,7 +69,8 @@ colnames(Dat.AssetPercent) <- c("Row.Labels", "Nontraditional Housing", "Alcohol
                                 "Storage Commercial", "Vacant Building", "Grand Total", "Population (16 Plus)", "MOE_Population_16Plus",
                                 "Percent of Population in the Labor Force", "MOE_Population_LaborForce", "Percent of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
                                 "MOE_UnemploymentRate", "Total Number of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
-                                "MOE_MeanIncome_dollars") 
+                                "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
+                                "# Rental Occupied Households", "RONoVehicle", "PercentRONoVehicle", "Total # of Households", "Percent of Households with No Vehicle") 
 
 colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
                               "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
@@ -43,94 +80,54 @@ colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol C
                               "Storage Commercial", "Vacant Building", "Grand Total", "Population (16 Plus)", "MOE_Population_16Plus",
                               "Percent of Population in the Labor Force", "MOE_Population_LaborForce", "Percent of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
                               "MOE_UnemploymentRate", "Total Number of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
-                              "MOE_MeanIncome_dollars") 
+                              "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
+                              "# Rental Occupied Households", "RONoVehicle", "PercentRONoVehicle", "Total # of Households", "Percent of Households with No Vehicle")
 
-#Round up Percents
-Dat.AssetPercent[,2] <- round(100*Dat.AssetPercent[,2], 2)
-Dat.AssetPercent[,3] <- round(100*Dat.AssetPercent[,3], 2)
-Dat.AssetPercent[,4] <- round(100*Dat.AssetPercent[,4], 2)
-Dat.AssetPercent[,5] <- round(100*Dat.AssetPercent[,5], 2)
-Dat.AssetPercent[,6] <- round(100*Dat.AssetPercent[,6], 2)
-Dat.AssetPercent[,7] <- round(100*Dat.AssetPercent[,7], 2)
-Dat.AssetPercent[,8] <- round(100*Dat.AssetPercent[,8], 2)
-Dat.AssetPercent[,9] <- round(100*Dat.AssetPercent[,9], 2) 
-Dat.AssetPercent[,10] <- round(100*Dat.AssetPercent[,10], 2)
-Dat.AssetPercent[,11] <- round(100*Dat.AssetPercent[,11], 2)
-Dat.AssetPercent[,12] <- round(100*Dat.AssetPercent[,12], 2)
-Dat.AssetPercent[,13] <- round(100*Dat.AssetPercent[,13], 2)
-Dat.AssetPercent[,14] <- round(100*Dat.AssetPercent[,14], 2)
-Dat.AssetPercent[,15] <- round(100*Dat.AssetPercent[,15], 2)
-Dat.AssetPercent[,16] <- round(100*Dat.AssetPercent[,16], 2)
-Dat.AssetPercent[,17] <- round(100*Dat.AssetPercent[,17], 2)
-Dat.AssetPercent[,18] <- round(100*Dat.AssetPercent[,18], 2)
-Dat.AssetPercent[,19] <- round(100*Dat.AssetPercent[,19], 2)
-Dat.AssetPercent[,20] <- round(100*Dat.AssetPercent[,20], 2)
-Dat.AssetPercent[,21] <- round(100*Dat.AssetPercent[,21], 2)
-Dat.AssetPercent[,22] <- round(100*Dat.AssetPercent[,22], 2)
-Dat.AssetPercent[,23] <- round(100*Dat.AssetPercent[,23], 2)
-Dat.AssetPercent[,24] <- round(100*Dat.AssetPercent[,24], 2)
-Dat.AssetPercent[,25] <- round(100*Dat.AssetPercent[,25], 2)
-Dat.AssetPercent[,26] <- round(100*Dat.AssetPercent[,26], 2)
-Dat.AssetPercent[,27] <- round(100*Dat.AssetPercent[,27], 2)
-Dat.AssetPercent[,28] <- round(100*Dat.AssetPercent[,28], 2)
-Dat.AssetPercent[,31] <- round(100*Dat.AssetPercent[,31], 2)
-Dat.AssetPercent[,32] <- round(100*Dat.AssetPercent[,32], 2)
-Dat.AssetPercent[,33] <- round(100*Dat.AssetPercent[,33], 2)
-Dat.AssetPercent[,34] <- round(100*Dat.AssetPercent[,34], 2)
-Dat.AssetCount[,31] <- round(100*Dat.AssetCount[,31], 2)
-Dat.AssetCount[,32] <- round(100*Dat.AssetCount[,32], 2)
-Dat.AssetCount[,33] <- round(100*Dat.AssetCount[,33], 2)
-Dat.AssetCount[,34] <- round(100*Dat.AssetCount[,34], 2)
 
-#Cut of Totals
-Dat.AssetCount <- Dat.AssetCount[c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55),]
-Dat.AssetPercent <- Dat.AssetPercent[c(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55),]
 
 #Store features and actual class in seprate variables
-featureList2 <- colnames(Dat.AssetPercent)[c(2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27)]
-featureList3 <- colnames(Dat.AssetPercent)[c(29,31,33,35,37,38,40)]
+featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
+featureList3 <- colnames(Dat.AssetPercent)[c(29,31,33,35,37,38,40,42,45,49)]
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
 
-#Setting Color Scheme for Median Income
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 14970, "red", "black")
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 20424 & Dat.AssetCount$`Median Income (in dollars)` > 14969, "sienna3", Dat.AssetCount$Group1)
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 22709 & Dat.AssetCount$`Median Income (in dollars)` > 20423, "sienna1", Dat.AssetCount$Group1)
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 27227 & Dat.AssetCount$`Median Income (in dollars)` > 22708, "lightgoldenrod2", Dat.AssetCount$Group1)
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 33721 & Dat.AssetCount$`Median Income (in dollars)` > 27226, "darkolivegreen3", Dat.AssetCount$Group1)
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 41677 & Dat.AssetCount$`Median Income (in dollars)` > 33720, "lightcyan3", Dat.AssetCount$Group1)
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` < 50324 & Dat.AssetCount$`Median Income (in dollars)` > 41676, "steelblue", Dat.AssetCount$Group1)
-Dat.AssetCount$Group1 <- ifelse(Dat.AssetCount$`Median Income (in dollars)` > 50323, "steelblue4", Dat.AssetCount$Group1)
+# SHAPEFILE - CENSUS INFORMATION
+#Download Onondaga County Tracts, Onondaga County = 67
+shape.Tracts <- tracts(state = 36, county = 67, cb = TRUE)
 
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 14970, "red", "black")
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 20424 & Dat.AssetPercent$`Median Income (in dollars)` > 14969, "sienna3", Dat.AssetPercent$Group1)
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 22709 & Dat.AssetPercent$`Median Income (in dollars)` > 20423, "sienna1", Dat.AssetPercent$Group1)
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 27227 & Dat.AssetPercent$`Median Income (in dollars)` > 22708, "lightgoldenrod2", Dat.AssetPercent$Group1)
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 33721 & Dat.AssetPercent$`Median Income (in dollars)` > 27226, "darkolivegreen3", Dat.AssetPercent$Group1)
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 41677 & Dat.AssetPercent$`Median Income (in dollars)` > 33720, "lightcyan3", Dat.AssetPercent$Group1)
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` < 50324 & Dat.AssetPercent$`Median Income (in dollars)` > 41676, "steelblue", Dat.AssetPercent$Group1)
-Dat.AssetPercent$Group1 <- ifelse(Dat.AssetPercent$`Median Income (in dollars)` > 50323, "steelblue4", Dat.AssetPercent$Group1)
+#Create a geographic set to grab tabular data (acs)
+shape.Syracuse <- shape.Tracts[shape.Tracts$NAME == 1 | shape.Tracts$NAME == 2 |
+                                 shape.Tracts$NAME == 3 | shape.Tracts$NAME == 4 |
+                                 shape.Tracts$NAME == 5.01 | shape.Tracts$NAME == 6 |
+                                 shape.Tracts$NAME == 7 | shape.Tracts$NAME == 8 |
+                                 shape.Tracts$NAME == 9 | shape.Tracts$NAME == 10 |
+                                 shape.Tracts$NAME == 14 | shape.Tracts$NAME == 15 |
+                                 shape.Tracts$NAME == 16 | shape.Tracts$NAME == 17.01 |
+                                 shape.Tracts$NAME == 17.02 | shape.Tracts$NAME == 18 |
+                                 shape.Tracts$NAME == 19 | shape.Tracts$NAME == 20 |
+                                 shape.Tracts$NAME == 21.01 | shape.Tracts$NAME == 23 |
+                                 shape.Tracts$NAME ==  24 | shape.Tracts$NAME == 27 |
+                                 shape.Tracts$NAME == 29.01 | shape.Tracts$NAME == 30 |
+                                 shape.Tracts$NAME == 32 | shape.Tracts$NAME == 34 |
+                                 shape.Tracts$NAME == 35 | shape.Tracts$NAME == 36.01 |
+                                 shape.Tracts$NAME == 36.02 | shape.Tracts$NAME == 38 |
+                                 shape.Tracts$NAME == 39 | shape.Tracts$NAME == 40 |
+                                 shape.Tracts$NAME == 42 | shape.Tracts$NAME == 43.01 |
+                                 shape.Tracts$NAME == 43.02 | shape.Tracts$NAME == 44 |
+                                 shape.Tracts$NAME == 45 | shape.Tracts$NAME == 46 |
+                                 shape.Tracts$NAME == 48 | shape.Tracts$NAME == 49 |
+                                 shape.Tracts$NAME ==  50 | shape.Tracts$NAME == 51 |
+                                 shape.Tracts$NAME == 52 | shape.Tracts$NAME == 53 |
+                                 shape.Tracts$NAME == 54 | shape.Tracts$NAME == 55 |
+                                 shape.Tracts$NAME == 56.01 | shape.Tracts$NAME == 56.02 |
+                                 shape.Tracts$NAME == 57 | shape.Tracts$NAME == 58 | 
+                                 shape.Tracts$NAME == 59 | shape.Tracts$NAME == 60 | 
+                                 shape.Tracts$NAME == 61.01 | shape.Tracts$NAME == 61.02 |
+                                 shape.Tracts$NAME == 61.03,]
 
-#Setting Color Scheme for Unemployment
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .29, "red", "black")
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .20 & Dat.AssetCount$`Unemployment Rate` < .30, "sienna3", Dat.AssetCount$Group1)
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .16 & Dat.AssetCount$`Unemployment Rate` < .21, "sienna1", Dat.AssetCount$Group1)
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .13 & Dat.AssetCount$`Unemployment Rate` < .17, "lightgoldenrod2", Dat.AssetCount$Group1)
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .09 & Dat.AssetCount$`Unemployment Rate` < .14, "darkolivegreen3", Dat.AssetCount$Group1)
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .06 & Dat.AssetCount$`Unemployment Rate` < .10, "lightcyan3", Dat.AssetCount$Group1)
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` > .04 & Dat.AssetCount$`Unemployment Rate` < .08, "steelblue", Dat.AssetCount$Group1)
-Dat.AssetCount$Group2 <- ifelse(Dat.AssetCount$`Unemployment Rate` < .05, "steelblue4", Dat.AssetCount$Group1)
-
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .29, "red", "black")
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .20 & Dat.AssetPercent$`Unemployment Rate` < .30, "sienna3", Dat.AssetCount$Group1)
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .16 & Dat.AssetPercent$`Unemployment Rate` < .21, "sienna1", Dat.AssetCount$Group1)
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .13 & Dat.AssetPercent$`Unemployment Rate` < .17, "lightgoldenrod2", Dat.AssetCount$Group1)
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .09 & Dat.AssetPercent$`Unemployment Rate` < .14, "darkolivegreen3", Dat.AssetCount$Group1)
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .06 & Dat.AssetPercent$`Unemployment Rate` < .10, "lightcyan3", Dat.AssetCount$Group1)
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .04 & Dat.AssetPercent$`Unemployment Rate` < .08, "steelblue", Dat.AssetCount$Group1)
-Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` < .05, "steelblue4", Dat.AssetCount$Group1)
-
+#Merge shapefile with ACS 2014 data
+shape.Syracuse <- merge(shape.Syracuse, ACS14, by.x = "NAME",by.y = "CensusTract3")
 
 # ui.R definition
 ui <- fluidPage(
@@ -213,7 +210,7 @@ ui <- fluidPage(
                           h4("CLICK & DRAG over points of interest for further information!"),
                           tags$ol(
                             tags$li("Neighborhood Asset: Data taken from the NYS Property Type Classification Codes."),
-                            tags$li("Neighborhood Health Indicator: Data taken from the ACS 2014 5 Year Estimate.")),
+                            tags$li("Census Information: Data taken from the ACS 2014 5 Year Estimate.")),
                           
                           # Vertical space
                           tags$hr(),
@@ -225,7 +222,7 @@ ui <- fluidPage(
                                                   choices = featureList2, 
                                                   selected = "Banks and Lending")),
                             column(6, selectInput(inputId = "Input2", 
-                                                  label = "Neighborhood Health Indicator", 
+                                                  label = "Census Information", 
                                                   choices = featureList3, 
                                                   selected = "Median Income (in dollars)"))),
                           #column(4, radioButtons("picture", "Syracuse Census Tracts:", c("Median H.H. Income", "Unemployment", "Reference Sheet")))),
@@ -244,7 +241,7 @@ ui <- fluidPage(
                                    column(4, selectInput(inputId = "Problem", label = "Problem Properties", c("Dilapidated", "Lead", "Underused Corner Properties")))),
                           h4("Dis/Investment Data"),
                           fixedRow(
-                            column(4, selectInput(inputId = "Census", label = "Neighborhood Health Indicator", choices = c("Unemployment", "Affordability", "Income"))),
+                            column(4, selectInput(inputId = "Census", label = "Census Information", choices = c("Unemployment", "Affordability", "Income"))),
                             column(4, selectInput(inputId = "Investment", label = "Neighborhood Investment and Assets", choices = c("Affordable Housing", "Commercial Corridors")))),
                           fixedRow(
                             column(12, leafletOutput("AccessMap1", height = "575px")))))))))
@@ -372,18 +369,25 @@ server <- function(input, output, session){
     output$AssetMap1 <- renderLeaflet({
       
       NonResSubset <- Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
+      pal <- colorQuantile("RdYlBu", shape.Syracuse$`Percent of Households with No Vehicle` , n = 5)
       
-      leaflet() %>%
+      leaflet(shape.Syracuse) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
+        addPolygons(stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
+                    color = ~colorQuantile("YlOrRd", shape.Syracuse$`Percent of Households with No Vehicle`)(shape.Syracuse$`Percent of Households with No Vehicle`)) %>%
         addCircleMarkers(lng = NonResSubset$Lon, lat = NonResSubset$Lat, popup = NonResSubset$Entity2, radius = 4, color = NonResSubset$Color) %>%
-        addLegend("bottomright", colors= c("blue", "red", "gray"), labels=c("Occupied", "Vacant", "No Information"), title="Property Status")
-    })
+        addLegend("bottomright", colors= c("blue", "red", "gray"), labels=c("Occupied", "Vacant", "No Information"), title="Property Status") %>%
+        addLegend("bottomleft", pal = pal, values = shape.Syracuse$`Percent of Households with No Vehicle`, title="Percent No Vehicle")
+      })
       
     #########CITY ACCESSIBILITY####
     output$AccessMap1 <- renderLeaflet({
-      leaflet(shape.ACS14)
-        addPolygons(data = shape.ACS14)
+      leaflet(shape.Syracuse) %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron") %>%
+        addPolygons(stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
+                    color = ~colorQuantile("YlOrRd", shape.Syracuse$`Percent of Households with No Vehicle`)(shape.Syracuse$`Percent of Households with No Vehicle`))
     })
   })
   
