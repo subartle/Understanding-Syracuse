@@ -8,14 +8,24 @@ library(jpeg)
 library(ggplot2)
 library(shinyjs)
 library(leaflet)
+library(sp)
+library(rgdal)
+library(maptools)
+library(maps)
+
 
 # Load data
 Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Count.csv")
 Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
+Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/NonResAssets.csv")
 
+#Colors for Dat.NonRes
+Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
+Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Occupied", "blue", Dat.NonRes$Color)
+Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "No Information", "gray", Dat.NonRes$Color)
 
 #clean up colnames
-colnames(Dat.AssetPercent) <- c("Row.Labels", "Affordable Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
+colnames(Dat.AssetPercent) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
                                 "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
                                 "Food Commercial","Gasoline Commercial","Health and Wellness", "Hotel and Motel", "Industrial",
                                 "Infrastructure", "Legal", "Manufacturing", "Mixed Use", "Office Space", 
@@ -25,7 +35,7 @@ colnames(Dat.AssetPercent) <- c("Row.Labels", "Affordable Housing", "Alcohol Com
                                 "MOE_UnemploymentRate", "Total Number of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
                                 "MOE_MeanIncome_dollars") 
 
-colnames(Dat.AssetCount) <- c("Row.Labels", "Affordable Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
+colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
                               "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
                               "Food Commercial","Gasoline Commercial","Health and Wellness", "Hotel and Motel", "Industrial",
                               "Infrastructure", "Legal", "Manufacturing", "Mixed Use", "Office Space", 
@@ -121,6 +131,7 @@ Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .06 & D
 Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` > .04 & Dat.AssetPercent$`Unemployment Rate` < .08, "steelblue", Dat.AssetCount$Group1)
 Dat.AssetPercent$Group2 <- ifelse(Dat.AssetPercent$`Unemployment Rate` < .05, "steelblue4", Dat.AssetCount$Group1)
 
+
 # ui.R definition
 ui <- fluidPage(
   # Set theme
@@ -172,7 +183,7 @@ ui <- fluidPage(
                                     of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a 
                                     common trend appears: two large, curvature areas arc across the North and Southwest. In 
                                     meetings, these areas are often described as", tags$div(HTML(paste(tags$span(style="color:red", 
-                                    "two large, red bananas")))), "(hence the tab name). Although accurate in relaying where social 
+                                    "two red bananas")))), "(hence the tab name). Although accurate in relaying where social 
                                     issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there 
                                     a way to use data to further differentiate and delineate the needs within these neighborhoods?")),
                             tags$li("Leads: A preliminary review of the analysis done was humbling. Analysts from the Syracuse University's 
@@ -358,40 +369,21 @@ server <- function(input, output, session){
       dat.hover[c(3,4,5)]
     })
     
-    # Create a space for maps
-    #output$myImage <- renderImage({
-    # if (input$picture == "Median H.H. Income") {
-    #  return(list(
-    #   src = "Understanding-Syracuse/Images/Picture1.png",
-    #  contentType = "image/png",
-    # alt = "Drats! Something went wrong D:"
-    #   ))
-    #} else if (input$picture == "Unemployment") {
-    # return(list(
-    #  src = "Understanding-Syracuse/Images/Picture.png",
-    # filetype = "image/png",
-    #alt = "Drats! Something went wrong D:"
-    #   ))
-    #}
-    #else if (input$picture == "Reference Sheet") {
-    # return(list(
-    #  src = "Understanding-Syracuse/Images/Local_Assets.png",
-    # filetype = "image/png",
-    #alt = "Drats! Something went wrong D:"
-    #  ))
-    #}
-    
-    # }, deleteFile = FALSE)
     output$AssetMap1 <- renderLeaflet({
+      
+      NonResSubset <- Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
+      
       leaflet() %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
-        addProviderTiles("CartoDB.Positron")
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircleMarkers(lng = NonResSubset$Lon, lat = NonResSubset$Lat, popup = NonResSubset$Entity2, radius = 4, color = NonResSubset$Color) %>%
+        addLegend("bottomright", colors= c("blue", "red", "gray"), labels=c("Occupied", "Vacant", "No Information"), title="Property Status")
     })
+      
     #########CITY ACCESSIBILITY####
     output$AccessMap1 <- renderLeaflet({
-      leaflet() %>%
-        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
-        addProviderTiles("CartoDB.Positron")
+      leaflet(shape.ACS14)
+        addPolygons(data = shape.ACS14)
     })
   })
   
