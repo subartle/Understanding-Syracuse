@@ -20,6 +20,9 @@ library(stringr) # to pad fips codes
 Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Count.csv")
 Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
 Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/NonResAssets.csv")
+Dat.Tract <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CensusTract.csv")
+Dat.Accessibility <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Accessibility_09-06-16.csv")
+Dat.ProblemProps <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Problems_09-06-16.csv")
 
 #Colors for Dat.NonRes
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
@@ -31,8 +34,13 @@ Dat.AssetPercent[,c(2:28,31:34)] <- round(100*Dat.AssetPercent[,c(2:28,31:34)], 
 Dat.AssetCount[,c(2:28,31:34)] <- round(100*Dat.AssetCount[,c(2:28,31:34)], 2)
 
 #as numeric
-Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
-Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
+Dat.AssetCount$Row.Labels <- as.character(Dat.AssetCount$Row.Labels)
+Dat.AssetPercent$Row.Labels <- as.character(Dat.AssetPercent$Row.Labels)
+Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
+Dat.Accessibility$lon <- as.numeric(Dat.Accessibility$lon)
+
+#as character
+Dat.Accessibility$Accessibility <- as.character(Dat.Accessibility$Accessibility)
 
 #Cut off Totals
 Dat.AssetCount <- Dat.AssetCount[c(1:55),]
@@ -42,15 +50,17 @@ Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
 #Download ACS 2014 Data
 ACS14 <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/ACS14.csv")
 ACS14$CensusTract3 <- as.character(ACS14$CensusTract3)
+ACS14 <- merge(ACS14, Dat.Tract, by.x = "CensusTract3",by.y = "NAME")
 
 
 #clean up colnames
 colnames(ACS14) <- c("CensusTract", "CensusTract2", "CensusTract3", "Population (16 Plus)", "MOE_Population_16Plus",
-                     "Percent of Population in the Labor Force", "MOE_Population_LaborForce", "Percent of Population Employed", 
-                     "MOE_Population_Employed", "Unemployment Rate", "MOE_UnemploymentRate", "Total Number of Households", 
+                     "% of Population in the Labor Force", "MOE_Population_LaborForce", "% of Population Employed", 
+                     "MOE_Population_Employed", "Unemployment Rate", "MOE_UnemploymentRate", "# of Households", 
                      "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)", "MOE_MeanIncome_dollars",
                      "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
-                     "# Rental Occupied Households", "RONoVehicle", "PercentRONoVehicle", "Total # of Households", "Percent of Households with No Vehicle") 
+                     "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle",
+                     "lon", "lat") 
 
 
 #ACS INFO Merged
@@ -67,10 +77,10 @@ colnames(Dat.AssetPercent) <- c("Row.Labels", "Nontraditional Housing", "Alcohol
                                 "Infrastructure", "Legal", "Manufacturing", "Mixed Use", "Office Space", 
                                 "Public Space and Services", "Religious", "Residential", "Retail Commercial", "Shopping Center",
                                 "Storage Commercial", "Vacant Building", "Grand Total", "Population (16 Plus)", "MOE_Population_16Plus",
-                                "Percent of Population in the Labor Force", "MOE_Population_LaborForce", "Percent of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
-                                "MOE_UnemploymentRate", "Total Number of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
+                                "% of Population in the Labor Force", "MOE_Population_LaborForce", "% of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
+                                "MOE_UnemploymentRate", "# of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
                                 "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
-                                "# Rental Occupied Households", "RONoVehicle", "PercentRONoVehicle", "Total # of Households", "Percent of Households with No Vehicle") 
+                                "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle") 
 
 colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
                               "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
@@ -78,16 +88,20 @@ colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol C
                               "Infrastructure", "Legal", "Manufacturing", "Mixed Use", "Office Space", 
                               "Public Space and Services", "Religious", "Residential", "Retail Commercial", "Shopping Center",
                               "Storage Commercial", "Vacant Building", "Grand Total", "Population (16 Plus)", "MOE_Population_16Plus",
-                              "Percent of Population in the Labor Force", "MOE_Population_LaborForce", "Percent of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
-                              "MOE_UnemploymentRate", "Total Number of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
+                              "% of Population in the Labor Force", "MOE_Population_LaborForce", "% of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
+                              "MOE_UnemploymentRate", "# of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
                               "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
-                              "# Rental Occupied Households", "RONoVehicle", "PercentRONoVehicle", "Total # of Households", "Percent of Households with No Vehicle")
+                              "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle")
 
 
 
 #Store features and actual class in seprate variables
+featureList1 <-  c("City-Owned", "Seizable", "SCSD", "Greater Syracuse Land Bank", "City Park", "SMNC", "SURA", "Community Center", "O/SIDA")
 featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
-featureList3 <- colnames(Dat.AssetPercent)[c(29,31,33,35,37,38,40,42,45,49)]
+featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
+featureList4 <- "Suspected Zombie Property"
+featureList5 <- c("Vacant", "Potential Lead Paint", "Potential Lead Paint Dilapidated Vacant", "Potential Lead Paint Vacant", "Potential Lead Paint Dilapidated", "Dilapidated", "Dilapidated Vacant")  
+
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
@@ -126,8 +140,11 @@ shape.Syracuse <- shape.Tracts[shape.Tracts$NAME == 1 | shape.Tracts$NAME == 2 |
                                  shape.Tracts$NAME == 61.01 | shape.Tracts$NAME == 61.02 |
                                  shape.Tracts$NAME == 61.03,]
 
-#Merge shapefile with ACS 2014 data
-shape.Syracuse <- merge(shape.Syracuse, ACS14, by.x = "NAME",by.y = "CensusTract3")
+
+nhoodIcon <- makeIcon(
+  iconUrl = "Understanding-Syracuse/Images/neighbourhood-icon.png",
+  iconWidth = 10, iconHeight = 10,
+  iconAnchorX = 5, iconAnchorY = 5)
 
 # ui.R definition
 ui <- fluidPage(
@@ -135,6 +152,7 @@ ui <- fluidPage(
   theme = shinytheme("united"),
   mainPanel(
     tabsetPanel(
+      ###########METHODOLOGY#########
       tabPanel(h4("Methodology"), 
                tabsetPanel(
                  tabPanel("Framework",
@@ -170,6 +188,8 @@ ui <- fluidPage(
                             tags$li("What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"),
                             tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
                           h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")))),
+      
+      ###########TWO RED BANANAS######
       tabPanel(h4("Two Red Bananas"),
                tabsetPanel(
                  tabPanel("Tab Overview",
@@ -206,12 +226,17 @@ ui <- fluidPage(
                           #Vertical space
                           fixedRow(column(12, imageOutput("redBananasPic")))),
                  
+                 ###########Physical Assets#########
                  tabPanel("Physical Assets", 
-                          h4("CLICK & DRAG over points of interest for further information!"),
-                          tags$ol(
-                            tags$li("Neighborhood Asset: Data taken from the NYS Property Type Classification Codes."),
-                            tags$li("Census Information: Data taken from the ACS 2014 5 Year Estimate.")),
-                          
+                          h4("Question: Is there a relationship between certain types of property based community assets and neighborhood health?"),
+                          tags$ol("HOW TO:",
+                                  h5("Step 1: The drop down labeled 'Neighborhood Asset' includes data from the SPAD database (see Tab Overview for more information). For example if 'Banks and Lending' is selected, the plots below will group the total # of banks and lending institutions by census tract and the map will populate with a dot for every property that has a bank and lending institution within it."),
+                                  h5("Step 2: The drop down labeled 'Census Information' includes data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the plots will alter the x-axis accordingly and the map will shade by census tract. Be mindful of the map's legend."),
+                                  h5("Step 3: Click and drag over the plots' census dots. More detailed information will populate the gray table."),
+                                  h5("Step 4: Hover over the map's asset points for more detailed informaiton")),
+                          h4("Observations: Census tracts with a low unemployment rate also have a higher total # of households and a lower percentage of households with no vehicle. Furthermore, there is a positive relationship between these census tracts and residential assets and a negative relationship between these census tracts and all other, non-residential assets."),
+                          h4("Conclusions: The below plots do NOT represent a causal relationship. However, they bring doubt to the hypothesis that census tracts with a higher # or % of non-residential services are more likely to have higher economic opportunity."),
+                         
                           # Vertical space
                           tags$hr(),
                           
@@ -225,26 +250,29 @@ ui <- fluidPage(
                                                   label = "Census Information", 
                                                   choices = featureList3, 
                                                   selected = "Median Income (in dollars)"))),
-                          #column(4, radioButtons("picture", "Syracuse Census Tracts:", c("Median H.H. Income", "Unemployment", "Reference Sheet")))),
                           
                           # First row
                           fixedRow(
                             column(6, plotlyOutput("Plot1", height = "400px"), 
                                    verbatimTextOutput("click1"), 
                                    plotlyOutput("Plot2", height="400px")),
-                            column(6, leafletOutput("AssetMap1", height = "800px")))),
+                            column(6, leafletOutput("AssetMap1", height = "800px"))),
+                          tags$hr(),
+                          h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
+                 
+                 ##########City Access Points#############
                  tabPanel("City's Access Points",
                           h4("Problem Definition: What neighborhoods are accessible for public, place-based intervention?"),
                           h4("Property Data"),
-                          fixedRow(column(4, selectInput(inputId = "Accessible", label = "Accessible Properties", choices = c("SIDA", "OSIDA", "Land Bank", "City-owned", "Seizable"))),
-                                   column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = c("Zombie", "Vacant & Tax Current"))),
-                                   column(4, selectInput(inputId = "Problem", label = "Problem Properties", c("Dilapidated", "Lead", "Underused Corner Properties")))),
+                          fixedRow(column(4, selectInput(inputId = "Accessible", label = "Accessible Properties", choices = featureList1)),
+                                   column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = featureList4)),
+                                   column(4, selectInput(inputId = "Problem", label = "Problem Properties", c("Dilapidated", "Vacant", "Potential Lead")))),
                           h4("Dis/Investment Data"),
                           fixedRow(
-                            column(4, selectInput(inputId = "Census", label = "Census Information", choices = c("Unemployment", "Affordability", "Income"))),
-                            column(4, selectInput(inputId = "Investment", label = "Neighborhood Investment and Assets", choices = c("Affordable Housing", "Commercial Corridors")))),
+                            column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
+                            column(4, selectizeInput(inputId = "Investment", label = "Neighborhood Investment and Assets", choices = c("need to add data", "need to add data"), multiple = TRUE))),
                           fixedRow(
-                            column(12, leafletOutput("AccessMap1", height = "575px")))))))))
+                            column(12, leafletOutput("AccessMap1", height = "700px")))))))))
 
 # server.R definition
 server <- function(input, output, session){
@@ -299,7 +327,7 @@ server <- function(input, output, session){
   
   #########PHYSICAL ASSETS####
   # Observes the second feature input for a change
-  observeEvent(c(input$Input2, input$Input1),{
+  observeEvent(c(input$Input2, input$Input1, input$Census),{
     # Create a convenience data.frame which can be used for charting
     plot1.df <- data.frame(Dat.AssetPercent[,input$Input2],
                            Dat.AssetPercent[,input$Input1],
@@ -310,9 +338,27 @@ server <- function(input, output, session){
                            Dat.AssetCount[,input$Input1],
                            CensusTract = Dat.AssetCount$Row.Labels,
                            Income = Dat.AssetCount$`Median Income (in dollars)`)
+  
+    censusInfo <- data.frame(ACS14[,input$Input2],
+                             ACS14$CensusTract,
+                             ACS14$lon,
+                             ACS14$lat)
+    
+    censusInfo2 <- data.frame(ACS14[,input$Census],
+                              ACS14$CensusTract,
+                              ACS14$lon,
+                              ACS14$lat)
+    
     # Add column names
     colnames(plot1.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(plot2.df) <- c("x", "y", "CensusTract", "MedianIncome")
+    colnames(censusInfo) <- c("x", "CensusTract3", "lon", "lat")
+    colnames(censusInfo2) <- c("x", "CensusTract3", "lon", "lat")
+    
+    #Merge shapefile with ACS 2014 data
+    shape.asset <- merge(shape.Syracuse, censusInfo, by.x = "NAME",by.y = "CensusTract3")
+    shape.access <- merge(shape.Syracuse, censusInfo2, by.x = "NAME",by.y = "CensusTract3")
+    
     
     #fitted lines
     fit1 <- lm(y ~ x, data = plot1.df)
@@ -369,26 +415,36 @@ server <- function(input, output, session){
     output$AssetMap1 <- renderLeaflet({
       
       NonResSubset <- Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
-      pal <- colorQuantile("RdYlBu", shape.Syracuse$`Percent of Households with No Vehicle` , n = 5)
       
-      leaflet(shape.Syracuse) %>%
+      leaflet(shape.asset) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
-        addPolygons(stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
-                    color = ~colorQuantile("YlOrRd", shape.Syracuse$`Percent of Households with No Vehicle`)(shape.Syracuse$`Percent of Households with No Vehicle`)) %>%
+        addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
+                    color = ~colorNumeric("Blues", shape.asset$x)(shape.asset$x)) %>%
+        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = ~as.character(NAME)) %>%
         addCircleMarkers(lng = NonResSubset$Lon, lat = NonResSubset$Lat, popup = NonResSubset$Entity2, radius = 4, color = NonResSubset$Color) %>%
-        addLegend("bottomright", colors= c("blue", "red", "gray"), labels=c("Occupied", "Vacant", "No Information"), title="Property Status") %>%
-        addLegend("bottomleft", pal = pal, values = shape.Syracuse$`Percent of Households with No Vehicle`, title="Percent No Vehicle")
+        addLegend("bottomright", colors= c("blue", "red", "gray", "orange"), labels=c("Occupied", "Vacant", "No Information", "Census Tract #"), title="Property Status") %>%
+        addLegend("bottomleft", pal = colorNumeric("Blues", shape.asset$x, n = 5), values=shape.asset$x, title=input$Input2)
       })
       
     #########CITY ACCESSIBILITY####
     output$AccessMap1 <- renderLeaflet({
-      leaflet(shape.Syracuse) %>%
+
+      accessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
+      InaccessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
+      ProblemSubset <- Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
+      
+      leaflet(shape.access) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
-        addPolygons(stroke = FALSE, fillOpacity = 0.5, smoothFactor = 0.5,
-                    color = ~colorQuantile("YlOrRd", shape.Syracuse$`Percent of Households with No Vehicle`)(shape.Syracuse$`Percent of Households with No Vehicle`))
-    })
+        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = ~as.character(NAME)) %>%
+                addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
+                    color = ~colorNumeric("Blues", shape.access$x)(shape.access$x)) %>%
+        addCircleMarkers(lng = accessSubset$lat, lat = accessSubset$lon, radius = 4, color = "green") %>%
+        addCircleMarkers(lng = InaccessSubset$lat, lat = InaccessSubset$lon, radius = 4, color = "gray") %>%
+        addLegend("bottomright", colors= c("green", "gray", "black", "purple", "orange"), labels=c("Accessible Properties", "Inaccessibile Properties", "Problem Properties", "Neighborhood Investment", "Census Tract #"), title="Property Status") %>%
+        addLegend("bottomleft", pal = colorNumeric("Blues", shape.access$x, n = 5), values=shape.access$x, title=input$Census)
+      })
   })
   
 }
