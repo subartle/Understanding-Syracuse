@@ -23,6 +23,7 @@ Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding
 Dat.Tract <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CensusTract.csv")
 Dat.Accessibility <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Accessibility_09-06-16.csv")
 Dat.ProblemProps <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Problems_09-06-16.csv")
+Dat.Investment <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/NBD_Investment.csv")
 
 #Colors for Dat.NonRes
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
@@ -96,12 +97,11 @@ colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol C
 
 
 #Store features and actual class in seprate variables
-featureList1 <-  c("City-Owned", "Seizable", "SCSD", "Greater Syracuse Land Bank", "City Park", "SMNC", "SURA", "Community Center", "O/SIDA")
+featureList1 <-  c("Blank", "City-Owned", "Seizable", "SCSD", "Greater Syracuse Land Bank", "City Park", "SMNC", "SURA", "Community Center", "O/SIDA")
 featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
 featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
-featureList4 <- "Suspected Zombie Property"
-featureList5 <- c("Vacant", "Potential Lead Paint", "Potential Lead Paint Dilapidated Vacant", "Potential Lead Paint Vacant", "Potential Lead Paint Dilapidated", "Dilapidated", "Dilapidated Vacant")  
-
+featureList4 <- c("Blank", "Suspected Zombie Property")
+featureList5 <- c("Blank", "Acquisition and Rehabilitation","Demolition + New Construction", "Demolition Only", "Distressed Property Program", "Incomplete Info", "New Construction", "Rehabilitation", "Rental Rehabilitation", "Reprogrammed 1% (36+38+39)", "Special Housing Project", "Syracuse Lead Project", "Tax Credit", "Vacant Property Program")
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
@@ -261,16 +261,21 @@ ui <- fluidPage(
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
                  ##########City Access Points#############
-                 tabPanel("City's Access Points",
-                          h4("Problem Definition: What neighborhoods are accessible for public, place-based intervention?"),
-                          h4("Property Data"),
+                 tabPanel("Place-Based Approach",
+                          h4("Question: What has been the City’s place-based approach been? Where has it invested money and in what way?"),
+                          tags$ol("HOW TO:",
+                                  h5("Step 1: The drop down labeled 'Accessible Properties' displays points where the City or a City partner currently has or has potential to take parcel ownership. Therefore, there is potential for a place based project."),
+                                  h5("Step 2: The drop down labeled 'Inaccessible Properties' displays points where the City would struggle to gain access to a parcel."),
+                                  h5("Step 3: The drop down labeled 'Census Information' colors the map with data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the map will shade by census tract. Be mindful of the map's legend and click the gold houses to identify census tract #s."),
+                                  h5("Step 4: The drop down labeled 'Property Investments' show where the City or a City partner has invested CDBG, HOME or Lead money over the past 5+ years (more detailed metadata to come). Click the purple points to identify the grant dollar amount invested in the property."),
+                                  h5("Step 5: Dont forget to click over golden houses and purple dots for more detailed info!")),                          
+                          h4("Observations: Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"),
                           fixedRow(column(4, selectInput(inputId = "Accessible", label = "Accessible Properties", choices = featureList1)),
-                                   column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = featureList4)),
-                                   column(4, selectInput(inputId = "Problem", label = "Problem Properties", c("Dilapidated", "Vacant", "Potential Lead")))),
+                                   column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = featureList4))),
                           h4("Dis/Investment Data"),
                           fixedRow(
                             column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
-                            column(4, selectizeInput(inputId = "Investment", label = "Neighborhood Investment and Assets", choices = c("need to add data", "need to add data"), multiple = TRUE))),
+                            column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
                             column(12, leafletOutput("AccessMap1", height = "700px")))))))))
 
@@ -421,7 +426,7 @@ server <- function(input, output, session){
         addProviderTiles("CartoDB.Positron") %>%
         addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
                     color = ~colorNumeric("Blues", shape.asset$x)(shape.asset$x)) %>%
-        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = ~as.character(NAME)) %>%
+        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.access$NAME)) %>%
         addCircleMarkers(lng = NonResSubset$Lon, lat = NonResSubset$Lat, popup = NonResSubset$Entity2, radius = 4, color = NonResSubset$Color) %>%
         addLegend("bottomright", colors= c("blue", "red", "gray", "orange"), labels=c("Occupied", "Vacant", "No Information", "Census Tract #"), title="Property Status") %>%
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.asset$x, n = 5), values=shape.asset$x, title=input$Input2)
@@ -433,16 +438,18 @@ server <- function(input, output, session){
       accessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
       InaccessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
       ProblemSubset <- Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
+      Investment <- Dat.Investment[Dat.Investment$Activity == input$Investment, ]
       
       leaflet(shape.access) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
-        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = ~as.character(NAME)) %>%
+        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.access$NAME)) %>%
                 addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
                     color = ~colorNumeric("Blues", shape.access$x)(shape.access$x)) %>%
         addCircleMarkers(lng = accessSubset$lat, lat = accessSubset$lon, radius = 4, color = "green") %>%
         addCircleMarkers(lng = InaccessSubset$lat, lat = InaccessSubset$lon, radius = 4, color = "gray") %>%
-        addLegend("bottomright", colors= c("green", "gray", "black", "purple", "orange"), labels=c("Accessible Properties", "Inaccessibile Properties", "Problem Properties", "Neighborhood Investment", "Census Tract #"), title="Property Status") %>%
+        addCircleMarkers(lng = Investment$lat, lat = Investment$lon, popup = paste("Amount Invested: $", Investment$DollarAmount), radius = 4, color = "purple") %>%
+        addLegend("bottomright", colors= c("green", "gray", "purple", "orange"), labels=c("Accessible Properties", "Inaccessibile Properties", "Neighborhood Investment", "Census Tract #"), title="Property Status") %>%
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.access$x, n = 5), values=shape.access$x, title=input$Census)
       })
   })
