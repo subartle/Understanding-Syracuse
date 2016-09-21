@@ -187,7 +187,13 @@ ui <- fluidPage(
                             tags$li("What (if any) questions did this analysis answer or bring insight to?"),
                             tags$li("What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"),
                             tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
-                          h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")))),
+                          h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")),
+               tabPanel("Contacts and Data Geniuses",
+                          h5("Stephanie Pasquale: Deputy Commissioner for the Department Neighborhood and Business Development - spasquale@syrgov.net."),
+                          h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
+                          h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - SEdelstein@syrgov.net"),
+                          h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
+                          h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net")))),
       
       ###########TWO RED BANANAS######
       tabPanel(h4("Two Red Bananas"),
@@ -211,12 +217,14 @@ ui <- fluidPage(
                             tags$li("This tab's analysis hopes to (2) further differntiate and define physical assets and need in specific geographical
                                     areas and (2) offer an overview of access points for interventions.")),
                           h4("Data Governance & Maturity"),
-                          tags$ol("Physical Assets: TheSPAD data is stored in excel form at the SOCPA office. SPAD data is 
+                          tags$ol("Physical Assets: The SPAD data is stored in excel form at the SOCPA office. SPAD data is 
                                   recorded by Syracuse Police Department data, permitting data, Syracuse.com data and drive around 
                                   data. SPAD data is on the asset level. Ex) DestiNY may exist within one parcel but has hundreds of 
                                   assets within it. SPAD data captures every asset on a parcel. SPAD data is point in time data. Date 
                                   of when the asset was last updated or addes is recorded within the excel file."),
-                          tags$ol("City's Access Points: "),
+                          tags$ol("Place-Based Approach: Data was provided by the Department of Neighborhood and Business Development. The suspected 
+                                  zombie properties list was taken from the City of Syracuse Application for 'Zombie' and Vacant Properties Remediation 
+                                  and Prevention Initiative (prepared by Stephanie Pasquale and Michelle Sczpanski) "),
                           fixedRow(
                             column(12, selectInput(inputId = "redBananasSelect", 
                                                    label = h4("Snapshots of Previous Research"), 
@@ -262,7 +270,7 @@ ui <- fluidPage(
                  
                  ##########City Access Points#############
                  tabPanel("Place-Based Approach",
-                          h4("Question: What has been the City’s place-based approach been? Where has it invested money and in what way?"),
+                          h4("Question: What has been the City’s place-based approach? Where has money been invested and in what way?"),
                           tags$ol("HOW TO:",
                                   h5("Step 1: The drop down labeled 'Accessible Properties' displays points where the City or a City partner currently has or has potential to take parcel ownership. Therefore, there is potential for a place based project."),
                                   h5("Step 2: The drop down labeled 'Inaccessible Properties' displays points where the City would struggle to gain access to a parcel."),
@@ -277,7 +285,11 @@ ui <- fluidPage(
                             column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
-                            column(12, leafletOutput("AccessMap1", height = "700px")))))))))
+                            column(12, leafletOutput("AccessMap1", height = "700px")))),
+                 tabPanel("Poverty + Assets + Investment"))),
+      tabPanel(h4("Who?"),
+                       tabsetPanel(
+                         tabPanel("Calls"))))))
 
 # server.R definition
 server <- function(input, output, session){
