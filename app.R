@@ -14,6 +14,8 @@ library(maptools)
 library(tigris)
 library(acs)
 library(stringr) # to pad fips codes
+library(magrittr)
+library(highcharter)
 
 # Datasets - ASSETS 
 #Load Datasets (Assets)
@@ -32,7 +34,6 @@ Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "No Information", "gray", Dat.No
 
 #Round up Percents
 Dat.AssetPercent[,c(2:28,31:34)] <- round(100*Dat.AssetPercent[,c(2:28,31:34)], 2)
-Dat.AssetCount[,c(2:28,31:34)] <- round(100*Dat.AssetCount[,c(2:28,31:34)], 2)
 
 #as numeric
 Dat.AssetCount$Row.Labels <- as.character(Dat.AssetCount$Row.Labels)
@@ -47,12 +48,15 @@ Dat.Accessibility$Accessibility <- as.character(Dat.Accessibility$Accessibility)
 Dat.AssetCount <- Dat.AssetCount[c(1:55),]
 Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
 
+#Change Row Label to Numeric
+Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
+Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
+
 # DATAFRAME - CENSUS INFORMATION
 #Download ACS 2014 Data
 ACS14 <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/ACS14.csv")
 ACS14$CensusTract3 <- as.character(ACS14$CensusTract3)
 ACS14 <- merge(ACS14, Dat.Tract, by.x = "CensusTract3",by.y = "NAME")
-
 
 #clean up colnames
 colnames(ACS14) <- c("CensusTract", "CensusTract2", "CensusTract3", "Population (16 Plus)", "MOE_Population_16Plus",
@@ -65,7 +69,7 @@ colnames(ACS14) <- c("CensusTract", "CensusTract2", "CensusTract3", "Population 
 
 
 #ACS INFO Merged
-Dat.AssetCount <- merge(Dat.AssetCount, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
+Dat.AssetCount <- merge(Dat.AssetCount, ACS14, by.x = "Row.Labels",by.y = "CensusTract2")
 Dat.AssetCount <- Dat.AssetCount[, c(1:41, 57:64)]
 
 Dat.AssetPercent <- merge(Dat.AssetPercent, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
@@ -189,11 +193,18 @@ ui <- fluidPage(
                             tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
                           h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")),
                tabPanel("Contacts and Data Geniuses",
-                          h5("Stephanie Pasquale: Deputy Commissioner for the Department Neighborhood and Business Development - spasquale@syrgov.net."),
-                          h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
-                          h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - SEdelstein@syrgov.net"),
-                          h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
-                          h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net")))),
+                        h4("City of Syracuse Department of Neighbrohood and Business Development"),
+                        h5("Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."),
+                        h5("Belen Cordon: Planner 1 - bcordon@syrgov.net"),
+                        h5("Michelle Sczpanski: NBD Planner - msczpanski@sygovn.net"),
+                        h4("Syracuse Community Geography Department"),
+                        h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
+                        h4("City of Syracuse Department of Innovation"),
+                        h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - sedelstein@syrgov.net"),
+                        h4("Contact Community Services"),
+                        h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
+                        h4("Syracuse-Onondaga County Planning Agency"),
+                        h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net")))),
       
       ###########TWO RED BANANAS######
       tabPanel(h4("Two Red Bananas"),
@@ -268,7 +279,7 @@ ui <- fluidPage(
                           tags$hr(),
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
-                 ##########City Access Points#############
+                 ##########PLACE-BASED APPROACH#############
                  tabPanel("Place-Based Approach",
                           h4("Question: What has been the City’s place-based approach? Where has money been invested and in what way?"),
                           tags$ol("HOW TO:",
@@ -286,10 +297,30 @@ ui <- fluidPage(
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
                             column(12, leafletOutput("AccessMap1", height = "700px")))),
-                 tabPanel("Poverty + Assets + Investment"))),
+                 ##############COMMERCIAL CORRIDORS############
+                 tabPanel("Commercial Corridors",
+                          h4("...in production...")))),
+      ##############WHO?##############
       tabPanel(h4("Who?"),
                        tabsetPanel(
-                         tabPanel("Calls"))))))
+                         tabPanel("Tab Overview",
+                                  h4("Problem Definition"),
+                                  tags$ol(
+                                    tags$li(c("Problem Definition: The Census breaks Syracuse's population into thirds. 1/3rd of it's population live
+                                     under the poverty line, 1/3rd are described as being asset limited, income constrained, employed (ALICE), and 
+                                              1/3rd are middle to high income. However, this categorization is limited as populations vary
+                                              greatly within each 1/3rd. There exists some further delination by race and ethnicity, rental/ownership
+                                              status, employment status as well as extensive experience from many service providers who work everyday with
+                                              populations 'in need'. However, understanding the various subsets of need and extent to which these needs
+                                              being met are throughout the city is difficult accomplish on such a broad level. Is there a way to describe 
+                                              the citizens of Syracuse so that their needs may be more fully understood?")),
+                                    tags$li(c("Leads:"))),
+                                  h4("Data Governance & Maturity"),
+                                  tags$ol(
+                                    tags$li(c("Calls: "))),
+                                  fixedRow(column(8, highchartOutput("Poverty", height = "500px")))),
+                         tabPanel("Calls",
+                                  h4("...in production...")))))))
 
 # server.R definition
 server <- function(input, output, session){
@@ -464,7 +495,9 @@ server <- function(input, output, session){
         addLegend("bottomright", colors= c("green", "gray", "purple", "orange"), labels=c("Accessible Properties", "Inaccessibile Properties", "Neighborhood Investment", "Census Tract #"), title="Property Status") %>%
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.access$x, n = 5), values=shape.access$x, title=input$Census)
       })
-  })
+    
+    ############POVERTY#############
+    })
   
 }
 
