@@ -150,6 +150,18 @@ nhoodIcon <- makeIcon(
   iconWidth = 10, iconHeight = 10,
   iconAnchorX = 5, iconAnchorY = 5)
 
+#Investment Data Clean
+Dat.Investment$DollarAmount <- as.numeric(as.character(Dat.Investment$DollarAmount))
+Investment1 <- as.data.frame(tapply(Dat.Investment$DollarAmount, Dat.Investment$CensusTract3, sum))
+Investment2 <- as.data.frame(tapply(Dat.Investment$DollarAmount, Dat.Investment$CensusTract3, length))
+Investment2$CensusTract <- c("1", "10", "14", "15", "16", "17.01", "17.02", "18", "19", "2", "20", "21.01", "23", "24", "27", "29.01", "3", "30", "34", "35", "36.01", "36.02", "38", "39", "4", "40", "42", "45", "46", "48", "49", "5.01", "50", "51", "52", "53", "54", "55", "56.01", "57", "58", "59", "6", "60", "61.01", "61.03", "7", "8", "9", "Null")
+investmentSummary <- data.frame(Investment1, Investment2)
+colnames(investmentSummary) <- (c("ProjectSum", "ProjectCount", "CensusTract"))
+investmentSummary$ProjectSum <- as.numeric(investmentSummary$ProjectSum)
+investmentSummary$ProjectCount <- as.numeric(investmentSummary$ProjectCount)
+investmentSummary <- merge(ACS14, investmentSummary, by.x = "CensusTract",by.y = "CensusTract")
+
+
 # ui.R definition
 ui <- fluidPage(
   # Set theme
@@ -201,6 +213,7 @@ ui <- fluidPage(
                         h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
                         h4("City of Syracuse Department of Innovation"),
                         h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - sedelstein@syrgov.net"),
+                        h5("Cassie Schmitt: Syracuse I-Team Intern - cschmitt@syrgov.net"),
                         h4("Contact Community Services"),
                         h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
                         h4("Syracuse-Onondaga County Planning Agency"),
@@ -282,16 +295,21 @@ ui <- fluidPage(
                  ##########PLACE-BASED APPROACH#############
                  tabPanel("Place-Based Approach",
                           h4("Question: What has been the City’s place-based approach? Where has money been invested and in what way?"),
+                          h4("Observations: Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"),
+                          fixedRow(
+                            column(4, selectInput(inputId = "Census2", label = "Census Information", choices = featureList3))),
+                          fixedRow(
+                            column(8, plotlyOutput("PlotInvested", height = "400px")),
+                            column(4, verbatimTextOutput("investClick"))),
                           tags$ol("HOW TO:",
                                   h5("Step 1: The drop down labeled 'Accessible Properties' displays points where the City or a City partner currently has or has potential to take parcel ownership. Therefore, there is potential for a place based project."),
                                   h5("Step 2: The drop down labeled 'Inaccessible Properties' displays points where the City would struggle to gain access to a parcel."),
                                   h5("Step 3: The drop down labeled 'Census Information' colors the map with data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the map will shade by census tract. Be mindful of the map's legend and click the gold houses to identify census tract #s."),
                                   h5("Step 4: The drop down labeled 'Property Investments' show where the City or a City partner has invested CDBG, HOME or Lead money over the past 5+ years (more detailed metadata to come). Click the purple points to identify the grant dollar amount invested in the property."),
-                                  h5("Step 5: Dont forget to click over golden houses and purple dots for more detailed info!")),                          
-                          h4("Observations: Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"),
-                          fixedRow(column(4, selectInput(inputId = "Accessible", label = "Accessible Properties", choices = featureList1)),
-                                   column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = featureList4))),
-                          h4("Dis/Investment Data"),
+                                  h5("Step 5: Dont forget to click over golden houses and purple dots for more detailed info!")),
+                          fixedRow(
+                            column(4, selectInput(inputId = "Accessible", label = "Accessible Properties", choices = featureList1)),
+                            column(4, selectInput(inputId = "Inaccessible", label = "Inaccessible Properties", choices = featureList4))),
                           fixedRow(
                             column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
@@ -311,8 +329,8 @@ ui <- fluidPage(
                                               1/3rd are middle to high income. However, this categorization is limited as populations vary
                                               greatly within each 1/3rd. There exists some further delination by race and ethnicity, rental/ownership
                                               status, employment status as well as extensive experience from many service providers who work everyday with
-                                              populations 'in need'. However, understanding the various subsets of need and extent to which these needs
-                                              being met are throughout the city is difficult accomplish on such a broad level. Is there a way to describe 
+                                              populations who utilize public services. However, understanding the various subsets of need and extent to which these needs
+                                              are being met throughout the city is difficult to accomplish on such a broad level. Is there a way to describe 
                                               the citizens of Syracuse so that their needs may be more fully understood?")),
                                     tags$li(c("Leads:"))),
                                   h4("Data Governance & Maturity"),
@@ -474,7 +492,7 @@ server <- function(input, output, session){
         addLegend("bottomright", colors= c("blue", "red", "gray", "orange"), labels=c("Occupied", "Vacant", "No Information", "Census Tract #"), title="Property Status") %>%
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.asset$x, n = 5), values=shape.asset$x, title=input$Input2)
       })
-      
+
     #########CITY ACCESSIBILITY####
     output$AccessMap1 <- renderLeaflet({
 
@@ -496,6 +514,34 @@ server <- function(input, output, session){
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.access$x, n = 5), values=shape.access$x, title=input$Census)
       })
     
+    
+    observeEvent(c(input$Census2),{
+      # Create a convenience data.frame which can be used for charting
+      plot.investSummary <- data.frame(ProjectSum = investmentSummary$ProjectSum,
+                             ProjectCount = investmentSummary$ProjectCount,
+                             CensusTract = investmentSummary$CensusTract,
+                             CensusInformation = investmentSummary[,input$Census2])
+      
+      output$PlotInvested <- renderPlotly({
+      plot_ly(plot.investSummary, x = ProjectSum, y = ProjectCount, 
+              key = CensusTract, 
+              hoverinfo = "text", 
+              text = paste("Census Tract:", CensusTract, "# of Projects:", ProjectCount,",", "Total Fed $:", ProjectSum), 
+              color = CensusInformation, 
+              colors = "PRGn", 
+              mode = "markers", 
+              source = "subset",
+              marker = list(size = 12))
+        })
+      
+      output$investClick <- renderPrint({
+        dat.investhover <- event_data("plotly_selected", source = "subset")
+        if (is.null(dat.investhover)) "Click and drag over points of interest" 
+        else 
+          names(dat.investhover) <- c("1", "2", "X Axis", "Y Axis", "Census Tract")
+        dat.investhover[c(3,4,5)]
+        })
+    })
     ############POVERTY#############
     })
   
