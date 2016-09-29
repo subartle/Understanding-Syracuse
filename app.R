@@ -28,6 +28,10 @@ Dat.Tract <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-
 Dat.Accessibility <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Accessibility_09-06-16.csv")
 Dat.ProblemProps <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Problems_09-06-16.csv")
 Dat.Investment <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/NBD_Investment.csv")
+Dat.AssetDensity <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/DensityRate.csv")
+
+#Shapefile load (problematic atm)
+commcorridors <- readShapePoly(fn="AssetParcelCounts", proj4string=CRS("+proj=longlat +datum=WGS84"))
 
 #Colors for Dat.NonRes
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
@@ -37,20 +41,19 @@ Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "No Information", "gray", Dat.No
 #Round up Percents
 Dat.AssetPercent[,c(2:28,31:34)] <- round(100*Dat.AssetPercent[,c(2:28,31:34)], 2)
 
+#Cut off Totals
+Dat.AssetCount <- Dat.AssetCount[c(1:55),]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
+
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
 Dat.Accessibility$lon <- as.numeric(Dat.Accessibility$lon)
 Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
 Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
-Dat.CCAssetCount$CensusTract <- as.numeric(as.character(Dat.CCAssetCount$CensusTract))
+Dat.CCAssetCount$RowLabel <- as.numeric(as.character(Dat.CCAssetCount$RowLabel))
 
 #as character
 Dat.Accessibility$Accessibility <- as.character(Dat.Accessibility$Accessibility)
-
-#Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55),]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
-
 
 # DATAFRAME - CENSUS INFORMATION
 #Download ACS 2014 Data
@@ -74,7 +77,7 @@ Dat.AssetCount <- Dat.AssetCount[, c(1:41, 57:64)]
 Dat.AssetPercent <- merge(Dat.AssetPercent, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
 Dat.AssetPercent <- Dat.AssetPercent[, c(1:41, 57:64)]
 
-Dat.CCAssetCount <- merge(Dat.CCAssetCount, ACS14, by.x = "CensusTract", by.y = "CensusTract2")
+Dat.CCAssetCount <- merge(Dat.CCAssetCount, ACS14, by.x = "RowLabel", by.y = "CensusTract2")
 Dat.CCAssetCount <- Dat.CCAssetCount[, c(1, 4:29, 32:54)]
 
 #clean up colnames
@@ -110,8 +113,6 @@ colnames(Dat.CCAssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol
                               "MOE_UnemploymentRate", "# of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
                               "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
                               "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle", "lon", "lat")
-
-
 
 #Store features and actual class in seprate variables
 featureList1 <-  c("Blank", "City-Owned", "Seizable", "SCSD", "Greater Syracuse Land Bank", "City Park", "SMNC", "SURA", "Community Center", "O/SIDA")
@@ -175,7 +176,6 @@ colnames(investmentSummary) <- (c("ProjectSum", "ProjectCount", "CensusTract"))
 investmentSummary$ProjectSum <- as.numeric(investmentSummary$ProjectSum)
 investmentSummary$ProjectCount <- as.numeric(investmentSummary$ProjectCount)
 investmentSummary <- merge(ACS14, investmentSummary, by.x = "CensusTract",by.y = "CensusTract")
-
 
 # ui.R definition
 ui <- fluidPage(
@@ -316,7 +316,11 @@ ui <- fluidPage(
                           fixedRow(
                             column(6, plotlyOutput("CCPlot", height = "500px"), 
                                    verbatimTextOutput("CCClick")), 
-                            column(6, leafletOutput("CCAssetMap", height = "800px")))),
+                            column(6, leafletOutput("CCAssetMap", height = "800px"))),
+                          h4("What is the density? Density = # of Assets/# of Parcels"),
+                          fixedRow(
+                            column(6, plotlyOutput("CCDensityPlot")),
+                            column(6, leafletOutput("CorridorMap", height = "800px")))),
                  
                  ##########PLACE-BASED APPROACH UI#############
                  tabPanel("Place-Based Approach",
@@ -529,7 +533,6 @@ server <- function(input, output, session){
     })
     
     #########COMMERCIAL CORRIDORS SERVER##### 
-    ###input$CCCensus, input$CCAsset
     #fitted lines
     fit3 <- lm(y ~ x, data = CCplot.df)
     
@@ -542,17 +545,42 @@ server <- function(input, output, session){
               hoverinfo = "text", 
               text = paste("X Axis:", x,",", "Y Axis:", y,",", "Census Tract:", CensusTract), 
               color = MedianIncome, 
-              colors = "RdYlBu",
+              colors = "Purples",
               mode = "markers", 
               source = "subset",
               marker = list(size = 12, outliercolor = "black")) %>%
         add_trace(data = CCplot.df, x = x, y = fitted(fit3), mode = "lines")
       layout(title = paste("# of", input$CCAsset, "vs ", input$CCCensus),
-             xaxis = list(title = input$CCCensus),
-             yaxis = list(title = paste("# of ", input$CCAsset)),
-             dragmode =  "select",
-             showlegend = FALSE)
+           xaxis = list(title = input$CCCensus),
+           yaxis = list(title = input$CCAsset),
+           dragmode =  "select",
+           showlegend = FALSE)
     })
+    
+    output$CCClick <- renderPrint({
+      CCdat.hover <- event_data("plotly_selected", source = "subset")
+      if (is.null(CCdat.hover)) "Click and drag over points of interest" 
+      else 
+        names(CCdat.hover) <- c("1", "2", "X Axis", "Y Axis", "Census Tract")
+      CCdat.hover[c(3,4,5)]
+    })
+  
+    output$CCAssetMap <- renderLeaflet({
+      
+      CCNonResSubset <- Dat.CCNonRes[Dat.CCNonRes$Entity_Category == input$CCAsset,]
+      
+      leaflet(shape.ccasset) %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron") %>%
+        addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
+                    color = ~colorNumeric("Oranges", shape.ccasset$x)(shape.ccasset$x)) %>%
+        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.ccasset$NAME)) %>%
+        addCircleMarkers(lng = Dat.CCNonRes$Lon, lat = Dat.CCNonRes$Lat, radius = 3, color = "lightgrey") %>%
+        addCircleMarkers(lng = CCNonResSubset$Lon, lat = CCNonResSubset$Lat, popup = CCNonResSubset$Entity2, radius = 5, color = "purple") %>%
+        addLegend("bottomright", colors= c("gray", "purple", "orange"), labels=c("All non-res.assets along comm. corridors", "Selected asset along comm. corridors", "Census tract #"), title="Points and Icons") %>%
+        addLegend("bottomleft", pal = colorNumeric("Oranges", shape.ccasset$x, n = 5), values=shape.ccasset$x, title="input$CCCensus")
+    })
+    
     
     #########PLACE BASED APPROACH SERVER####
     output$AccessMap1 <- renderLeaflet({
