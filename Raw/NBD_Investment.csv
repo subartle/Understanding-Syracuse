@@ -1879,7 +1879,7 @@ ID,YearBuilt,lat,lon,PNUMBR,DollarAmount,Program,Activity,TAXID,Full Address,Fie
 1495,1931,-76.14118018,43.01456918,1479007300,20000,Lead,Syracuse Lead Project,3.12E+25,3409-11 Salina St S,,61.01,61.01,61.01,Two Family,Rental Occupied
 1497,1928,-76.14145832,43.0140393,1479008300,20000,Lead,Syracuse Lead Project,3.12E+25,3501 Salina St S,,61.01,61.01,61.01,Two Family,Rental Occupied
 1498,1900,-76.14175201,43.01345603,1479008800,20000,Lead,Syracuse Lead Project,3.12E+25,3535-37 Salina St S,,61.01,61.01,61.01,Two Family,Rental Occupied
-1914,1970,-76.14290074,43.0037124,1479018200,360000,HOME,New Construction,,4445 S Salina St  ,,61.01,61.01,61.01,Apartment,Rental Occupied
+1914,1970,-76.14290074,43.0037124,1479018200,360000,HOME,New Construction,,4445 S Salina St Â ,,61.01,61.01,61.01,Apartment,Rental Occupied
 1500,1900,-76.14373002,43.00402713,1479018801,20000,Lead,Syracuse Lead Project,3.12E+25,4452 Salina St S,,61.01,61.01,61.01,Single Family,Rental Occupied
 1501,1910,-76.14279362,43.00277343,1479020100,20000,Lead,Syracuse Lead Project,3.12E+25,4605 Salina St S,,61.01,61.01,61.01,Two Family,Rental Occupied
 1510,1920,-76.1442892,43.00172062,1481100400,20000,Lead,Syracuse Lead Project,3.12E+25,127-29 Seeley Ave,,61.01,61.01,61.01,Two Family,Rental Occupied
@@ -1931,4 +1931,4 @@ ID,YearBuilt,lat,lon,PNUMBR,DollarAmount,Program,Activity,TAXID,Full Address,Fie
 1922,1952,-76.09998669,43.04883442,927000302,48000,HOME - PY39,Rehabilitation,,210 Fayette Boulevard,,Null,Null,Null,Commercial,Occupied Commercial
 1895,2009,-76.14872204,43.05704728,991004701,33533.86,Incomplete Info,Incomplete Info,,618 North Townsend Street,,Null,Null,Null,Commercial,Occupied Commercial
 1932,2009,-76.14872204,43.05704728,991004701,20000,Lead,Syracuse Lead Project,3.12E+25,618 Townsend St N,,Null,Null,Null,Commercial,Occupied Commercial
-1877,Null,-76,43,Blank,Null,Blank,Blank,Null,Blank,Null,Null,Null,Null,Null,Null
+1877,Null,-76,43,Blank,0,Blank,Blank,Null,Blank,Null,Null,Null,Null,Null,Null
