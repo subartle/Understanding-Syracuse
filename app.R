@@ -20,8 +20,10 @@ library(highcharter)
 # Datasets - ASSETS 
 #Load Datasets (Assets)
 Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Count.csv")
+Dat.CCAssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/CC_Grouped_Count.csv")
 Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
 Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/NonResAssets.csv")
+Dat.CCNonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CCNonResAssets.csv")
 Dat.Tract <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CensusTract.csv")
 Dat.Accessibility <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Accessibility_09-06-16.csv")
 Dat.ProblemProps <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Problems_09-06-16.csv")
@@ -36,10 +38,11 @@ Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "No Information", "gray", Dat.No
 Dat.AssetPercent[,c(2:28,31:34)] <- round(100*Dat.AssetPercent[,c(2:28,31:34)], 2)
 
 #as numeric
-Dat.AssetCount$Row.Labels <- as.character(Dat.AssetCount$Row.Labels)
-Dat.AssetPercent$Row.Labels <- as.character(Dat.AssetPercent$Row.Labels)
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
 Dat.Accessibility$lon <- as.numeric(Dat.Accessibility$lon)
+Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
+Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
+Dat.CCAssetCount$CensusTract <- as.numeric(as.character(Dat.CCAssetCount$CensusTract))
 
 #as character
 Dat.Accessibility$Accessibility <- as.character(Dat.Accessibility$Accessibility)
@@ -48,9 +51,6 @@ Dat.Accessibility$Accessibility <- as.character(Dat.Accessibility$Accessibility)
 Dat.AssetCount <- Dat.AssetCount[c(1:55),]
 Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
 
-#Change Row Label to Numeric
-Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
-Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
 
 # DATAFRAME - CENSUS INFORMATION
 #Download ACS 2014 Data
@@ -67,13 +67,15 @@ colnames(ACS14) <- c("CensusTract", "CensusTract2", "CensusTract3", "Population 
                      "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle",
                      "lon", "lat") 
 
-
 #ACS INFO Merged
 Dat.AssetCount <- merge(Dat.AssetCount, ACS14, by.x = "Row.Labels",by.y = "CensusTract2")
 Dat.AssetCount <- Dat.AssetCount[, c(1:41, 57:64)]
 
 Dat.AssetPercent <- merge(Dat.AssetPercent, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
 Dat.AssetPercent <- Dat.AssetPercent[, c(1:41, 57:64)]
+
+Dat.CCAssetCount <- merge(Dat.CCAssetCount, ACS14, by.x = "CensusTract", by.y = "CensusTract2")
+Dat.CCAssetCount <- Dat.CCAssetCount[, c(1, 4:29, 32:54)]
 
 #clean up colnames
 colnames(Dat.AssetPercent) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
@@ -98,6 +100,17 @@ colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol C
                               "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
                               "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle")
 
+colnames(Dat.CCAssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
+                              "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
+                              "Food Commercial","Gasoline Commercial","Health and Wellness", "Hotel and Motel",
+                              "Infrastructure", "Legal", "Manufacturing", "Mixed Use", "Office Space", 
+                              "Public Space and Services", "Religious", "Residential", "Retail Commercial", "Shopping Center",
+                              "Storage Commercial", "Vacant Building", "Grand Total", "Population (16 Plus)", "MOE_Population_16Plus",
+                              "% of Population in the Labor Force", "MOE_Population_LaborForce", "% of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
+                              "MOE_UnemploymentRate", "# of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
+                              "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
+                              "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle", "lon", "lat")
+
 
 
 #Store features and actual class in seprate variables
@@ -106,9 +119,11 @@ featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
 featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
 featureList4 <- c("Blank", "Suspected Zombie Property")
 featureList5 <- c("Blank", "Acquisition and Rehabilitation","Demolition + New Construction", "Demolition Only", "Distressed Property Program", "Incomplete Info", "New Construction", "Rehabilitation", "Rental Rehabilitation", "Reprogrammed 1% (36+38+39)", "Special Housing Project", "Syracuse Lead Project", "Tax Credit", "Vacant Property Program")
+featureList6 <- colnames(Dat.CCAssetCount)[c(2:27)]
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
+CensusTractCC <- Dat.CCAssetCount$Row.Labels
 
 # SHAPEFILE - CENSUS INFORMATION
 #Download Onondaga County Tracts, Onondaga County = 67
@@ -204,20 +219,20 @@ ui <- fluidPage(
                             tags$li("What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"),
                             tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
                           h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")),
-               tabPanel("Contacts and Data Geniuses",
-                        h4("City of Syracuse Department of Neighbrohood and Business Development"),
-                        h5("Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."),
-                        h5("Belen Cordon: Planner 1 - bcordon@syrgov.net"),
-                        h5("Michelle Sczpanski: NBD Planner - msczpanski@sygovn.net"),
-                        h4("Syracuse Community Geography Department"),
-                        h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
-                        h4("City of Syracuse Department of Innovation"),
-                        h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - sedelstein@syrgov.net"),
-                        h5("Cassie Schmitt: Syracuse I-Team Intern - cschmitt@syrgov.net"),
-                        h4("Contact Community Services"),
-                        h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
-                        h4("Syracuse-Onondaga County Planning Agency"),
-                        h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net")))),
+                 tabPanel("Contacts and Data Geniuses",
+                          h4("City of Syracuse Department of Neighbrohood and Business Development"),
+                          h5("Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."),
+                          h5("Belen Cordon: Planner 1 - bcordon@syrgov.net"),
+                          h5("Michelle Sczpanski: NBD Planner - msczpanski@sygovn.net"),
+                          h4("Syracuse Community Geography Department"),
+                          h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
+                          h4("City of Syracuse Department of Innovation"),
+                          h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - sedelstein@syrgov.net"),
+                          h5("Cassie Schmitt: Syracuse I-Team Intern - cschmitt@syrgov.net"),
+                          h4("Contact Community Services"),
+                          h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
+                          h4("Syracuse-Onondaga County Planning Agency"),
+                          h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net")))),
       
       ###########TWO RED BANANAS######
       tabPanel(h4("Two Red Bananas"),
@@ -226,13 +241,13 @@ ui <- fluidPage(
                           h4("Problem Definition"),
                           tags$ol(
                             tags$li(c("Problem Definition: Current analysis has effectively shown the concentration of poverty 
-                                    and lack of resources throughout the city of Syracuse. When poverty, unemployment, lack 
-                                    of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a 
-                                    common trend appears: two large, curvature areas arc across the North and Southwest. In 
-                                    meetings, these areas are often described as", tags$div(HTML(paste(tags$span(style="color:red", 
-                                    "two red bananas")))), "(hence the tab name). Although accurate in relaying where social 
-                                    issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there 
-                                    a way to use data to further differentiate and delineate the needs within these neighborhoods?")),
+                                      and lack of resources throughout the city of Syracuse. When poverty, unemployment, lack 
+                                      of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a 
+                                      common trend appears: two large, curvature areas arc across the North and Southwest. In 
+                                      meetings, these areas are often described as", tags$div(HTML(paste(tags$span(style="color:red", 
+                                                                                                                   "two red bananas")))), "(hence the tab name). Although accurate in relaying where social 
+                                      issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there 
+                                      a way to use data to further differentiate and delineate the needs within these neighborhoods?")),
                             tags$li("Leads: A preliminary review of the analysis done was humbling. Analysts from the Syracuse University's 
                                     Community Geography Department, CNY Fair Housing, the City of Syracuse's Dept. of Neighborhood 
                                     and Business Development, Home HeadQuarters and numerous other sources (a small portion summarised below) captures
@@ -258,7 +273,7 @@ ui <- fluidPage(
                           #Vertical space
                           fixedRow(column(12, imageOutput("redBananasPic")))),
                  
-                 ###########Physical Assets#########
+                 ###########PHYSICAL ASSETS UI#########
                  tabPanel("Physical Assets", 
                           h4("Question: Is there a relationship between certain types of property based community assets and neighborhood health?"),
                           tags$ol("HOW TO:",
@@ -268,7 +283,7 @@ ui <- fluidPage(
                                   h5("Step 4: Hover over the map's asset points for more detailed informaiton")),
                           h4("Observations: Census tracts with a low unemployment rate also have a higher total # of households and a lower percentage of households with no vehicle. Furthermore, there is a positive relationship between these census tracts and residential assets and a negative relationship between these census tracts and all other, non-residential assets."),
                           h4("Conclusions: The below plots do NOT represent a causal relationship. However, they bring doubt to the hypothesis that census tracts with a higher # or % of non-residential services are more likely to have higher economic opportunity."),
-                         
+                          
                           # Vertical space
                           tags$hr(),
                           
@@ -292,7 +307,18 @@ ui <- fluidPage(
                           tags$hr(),
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
-                 ##########PLACE-BASED APPROACH#############
+                 ##############COMMERCIAL CORRIDORS UI############
+                 tabPanel("Commercial Corridors",
+                          h4("...in production..."),
+                          fixedRow(
+                            column(4, selectInput(inputId = "CCCensus", label = "Census Information", choices = featureList3)),
+                            column(8, selectInput(inputId = "CCAsset", label = "Neighborhood Assets (Within 100 ft of Commercial Corridors)", choices = featureList6))),
+                          fixedRow(
+                            column(6, plotlyOutput("CCPlot", height = "500px"), 
+                                   verbatimTextOutput("CCClick")), 
+                            column(6, leafletOutput("CCAssetMap", height = "800px")))),
+                 
+                 ##########PLACE-BASED APPROACH UI#############
                  tabPanel("Place-Based Approach",
                           h4("Question: What has been the City’s place-based approach? Where has money been invested and in what way?"),
                           h4("Observations: Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"),
@@ -314,38 +340,35 @@ ui <- fluidPage(
                             column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
-                            column(12, leafletOutput("AccessMap1", height = "700px")))),
-                 ##############COMMERCIAL CORRIDORS############
-                 tabPanel("Commercial Corridors",
-                          h4("...in production...")))),
+                            column(12, leafletOutput("AccessMap1", height = "700px")))))),
       ##############WHO?##############
       tabPanel(h4("Who?"),
-                       tabsetPanel(
-                         tabPanel("Tab Overview",
-                                  h4("Problem Definition"),
-                                  tags$ol(
-                                    tags$li(c("Problem Definition: The Census breaks Syracuse's population into thirds. 1/3rd of it's population live
-                                     under the poverty line, 1/3rd are described as being asset limited, income constrained, employed (ALICE), and 
-                                              1/3rd are middle to high income. However, this categorization is limited as populations vary
-                                              greatly within each 1/3rd. There exists some further delination by race and ethnicity, rental/ownership
-                                              status, employment status as well as extensive experience from many service providers who work everyday with
-                                              populations who utilize public services. However, understanding the various subsets of need and extent to which these needs
-                                              are being met throughout the city is difficult to accomplish on such a broad level. Is there a way to describe 
-                                              the citizens of Syracuse so that their needs may be more fully understood?")),
-                                    tags$li(c("Leads:"))),
-                                  h4("Data Governance & Maturity"),
-                                  tags$ol(
-                                    tags$li(c("Calls: "))),
-                                  fixedRow(column(8, highchartOutput("Poverty", height = "500px")))),
-                         tabPanel("Calls",
-                                  h4("...in production...")))))))
+               tabsetPanel(
+                 tabPanel("Tab Overview",
+                          h4("Problem Definition"),
+                          tags$ol(
+                            tags$li(c("Problem Definition: The Census breaks Syracuse's population into thirds. 1/3rd of it's population live
+                                      under the poverty line, 1/3rd are described as being asset limited, income constrained, employed (ALICE), and 
+                                      1/3rd are middle to high income. However, this categorization is limited as populations vary
+                                      greatly within each 1/3rd. There exists some further delination by race and ethnicity, rental/ownership
+                                      status, employment status as well as extensive experience from many service providers who work everyday with
+                                      populations who utilize public services. However, understanding the various subsets of need and extent to which these needs
+                                      are being met throughout the city is difficult to accomplish on such a broad level. Is there a way to describe 
+                                      the citizens of Syracuse so that their needs may be more fully understood?")),
+                            tags$li(c("Leads:"))),
+                          h4("Data Governance & Maturity"),
+                          tags$ol(
+                            tags$li(c("Calls: "))),
+                          fixedRow(column(8, highchartOutput("Poverty", height = "500px")))),
+                 tabPanel("Calls",
+                          h4("...in production...")))))))
 
 # server.R definition
 server <- function(input, output, session){
   
-  #########ABOUT##############
+  #########ABOUT SERVER##############
   
-  #########METHODOLOGY########
+  #########METHODOLOGY SERVER########
   output$myMethod1 <- renderImage({list(
     src = "Understanding-Syracuse/Images/Method1.png",
     filetype = "image/png",
@@ -391,9 +414,9 @@ server <- function(input, output, session){
   }, deleteFile = FALSE)
   
   
-  #########PHYSICAL ASSETS####
+  #########PHYSICAL ASSETS SERVER####
   # Observes the second feature input for a change
-  observeEvent(c(input$Input2, input$Input1, input$Census),{
+  observeEvent(c(input$Input2, input$Input1, input$Census, input$CCCensus, input$CCAsset),{
     # Create a convenience data.frame which can be used for charting
     plot1.df <- data.frame(Dat.AssetPercent[,input$Input2],
                            Dat.AssetPercent[,input$Input1],
@@ -404,7 +427,12 @@ server <- function(input, output, session){
                            Dat.AssetCount[,input$Input1],
                            CensusTract = Dat.AssetCount$Row.Labels,
                            Income = Dat.AssetCount$`Median Income (in dollars)`)
-  
+    
+    CCplot.df <- data.frame(Dat.CCAssetCount[,input$CCCensus],
+                            Dat.CCAssetCount[,input$CCAsset],
+                            CensusTract = Dat.CCAssetCount$Row.Labels,
+                            Income = Dat.CCAssetCount$`Median Income (in dollars)`)
+    
     censusInfo <- data.frame(ACS14[,input$Input2],
                              ACS14$CensusTract,
                              ACS14$lon,
@@ -415,20 +443,27 @@ server <- function(input, output, session){
                               ACS14$lon,
                               ACS14$lat)
     
+    censusInfo3 <- data.frame(ACS14[,input$CCCensus],
+                              ACS14$CensusTract,
+                              ACS14$lon,
+                              ACS14$lat)
+    
     # Add column names
     colnames(plot1.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(plot2.df) <- c("x", "y", "CensusTract", "MedianIncome")
+    colnames(CCplot.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(censusInfo) <- c("x", "CensusTract3", "lon", "lat")
     colnames(censusInfo2) <- c("x", "CensusTract3", "lon", "lat")
+    colnames(censusInfo3) <- c("x", "CensusTract3", "lon", "lat")
     
     #Merge shapefile with ACS 2014 data
     shape.asset <- merge(shape.Syracuse, censusInfo, by.x = "NAME",by.y = "CensusTract3")
     shape.access <- merge(shape.Syracuse, censusInfo2, by.x = "NAME",by.y = "CensusTract3")
-    
+    shape.ccasset <- merge(shape.Syracuse, censusInfo3, by.x = "NAME",by.y = "CensusTract3")
     
     #fitted lines
     fit1 <- lm(y ~ x, data = plot1.df)
-    fit2 <- lm(y ~ x, data = plot2.df )
+    fit2 <- lm(y ~ x, data = plot2.df)
     
     # Do a plotly contour plot to visualize the two featres with
     # the number of malignant cases as size
@@ -491,11 +526,37 @@ server <- function(input, output, session){
         addCircleMarkers(lng = NonResSubset$Lon, lat = NonResSubset$Lat, popup = NonResSubset$Entity2, radius = 4, color = NonResSubset$Color) %>%
         addLegend("bottomright", colors= c("blue", "red", "gray", "orange"), labels=c("Occupied", "Vacant", "No Information", "Census Tract #"), title="Property Status") %>%
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.asset$x, n = 5), values=shape.asset$x, title=input$Input2)
-      })
-
-    #########CITY ACCESSIBILITY####
+    })
+    
+    #########COMMERCIAL CORRIDORS SERVER##### 
+    ###input$CCCensus, input$CCAsset
+    #fitted lines
+    fit3 <- lm(y ~ x, data = CCplot.df)
+    
+    # Do a plotly contour plot to visualize the two featres with
+    # the number of malignant cases as size
+    # Note the use of 'source' argument
+    output$CCPlot <- renderPlotly({
+      plot_ly(CCplot.df, x = x, y = y, 
+              key = CensusTract, 
+              hoverinfo = "text", 
+              text = paste("X Axis:", x,",", "Y Axis:", y,",", "Census Tract:", CensusTract), 
+              color = MedianIncome, 
+              colors = "RdYlBu",
+              mode = "markers", 
+              source = "subset",
+              marker = list(size = 12, outliercolor = "black")) %>%
+        add_trace(data = CCplot.df, x = x, y = fitted(fit3), mode = "lines")
+      layout(title = paste("# of", input$CCAsset, "vs ", input$CCCensus),
+             xaxis = list(title = input$CCCensus),
+             yaxis = list(title = paste("# of ", input$CCAsset)),
+             dragmode =  "select",
+             showlegend = FALSE)
+    })
+    
+    #########PLACE BASED APPROACH SERVER####
     output$AccessMap1 <- renderLeaflet({
-
+      
       accessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
       InaccessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
       ProblemSubset <- Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
@@ -505,34 +566,34 @@ server <- function(input, output, session){
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
         addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.access$NAME)) %>%
-                addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
+        addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
                     color = ~colorNumeric("Blues", shape.access$x)(shape.access$x)) %>%
         addCircleMarkers(lng = accessSubset$lat, lat = accessSubset$lon, radius = 4, color = "green") %>%
         addCircleMarkers(lng = InaccessSubset$lat, lat = InaccessSubset$lon, radius = 4, color = "gray") %>%
         addCircleMarkers(lng = Investment$lat, lat = Investment$lon, popup = paste("Amount Invested: $", Investment$DollarAmount), radius = 4, color = "purple") %>%
         addLegend("bottomright", colors= c("green", "gray", "purple", "orange"), labels=c("Accessible Properties", "Inaccessibile Properties", "Neighborhood Investment", "Census Tract #"), title="Property Status") %>%
         addLegend("bottomleft", pal = colorNumeric("Blues", shape.access$x, n = 5), values=shape.access$x, title=input$Census)
-      })
+    })
     
     
     observeEvent(c(input$Census2),{
       # Create a convenience data.frame which can be used for charting
       plot.investSummary <- data.frame(ProjectSum = investmentSummary$ProjectSum,
-                             ProjectCount = investmentSummary$ProjectCount,
-                             CensusTract = investmentSummary$CensusTract,
-                             CensusInformation = investmentSummary[,input$Census2])
+                                       ProjectCount = investmentSummary$ProjectCount,
+                                       CensusTract = investmentSummary$CensusTract,
+                                       CensusInformation = investmentSummary[,input$Census2])
       
       output$PlotInvested <- renderPlotly({
-      plot_ly(plot.investSummary, x = ProjectSum, y = ProjectCount, 
-              key = CensusTract, 
-              hoverinfo = "text", 
-              text = paste("Census Tract:", CensusTract, "# of Projects:", ProjectCount,",", "Total Fed $:", ProjectSum), 
-              color = CensusInformation, 
-              colors = "PRGn", 
-              mode = "markers", 
-              source = "subset",
-              marker = list(size = 12))
-        })
+        plot_ly(plot.investSummary, x = ProjectSum, y = ProjectCount, 
+                key = CensusTract, 
+                hoverinfo = "text", 
+                text = paste("Census Tract:", CensusTract, "# of Projects:", ProjectCount,",", "Total Fed $:", ProjectSum), 
+                color = CensusInformation, 
+                colors = "PRGn", 
+                mode = "markers", 
+                source = "subset",
+                marker = list(size = 12))
+      })
       
       output$investClick <- renderPrint({
         dat.investhover <- event_data("plotly_selected", source = "subset")
@@ -540,11 +601,9 @@ server <- function(input, output, session){
         else 
           names(dat.investhover) <- c("1", "2", "X Axis", "Y Axis", "Census Tract")
         dat.investhover[c(3,4,5)]
-        })
+      })
     })
-    ############POVERTY#############
-    })
-  
-}
+  })
+  }
 
 shinyApp(ui = ui, server = server)
