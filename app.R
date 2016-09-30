@@ -16,6 +16,8 @@ library(acs)
 library(stringr) # to pad fips codes
 library(magrittr)
 library(highcharter)
+library(geojsonio)
+library(gistr)
 
 # Datasets - ASSETS 
 #Load Datasets (Assets)
@@ -31,7 +33,16 @@ Dat.Investment <- read.csv("https://raw.githubusercontent.com/subartle/Understan
 Dat.AssetDensity <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/DensityRate.csv")
 
 #Shapefile load (problematic atm)
-commcorridors <- readShapePoly(fn="AssetParcelCounts", proj4string=CRS("+proj=longlat +datum=WGS84"))
+##Converting to a jso
+#download.file("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/commcorridors.geojson", "commcorridors.geojson")
+#commcorridors <- readShapePoly(fn="AssetParcelCounts", proj4string=CRS("+proj=longlat +datum=WGS84"))
+#commcorridors <- spTransform(commcorridors, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
+#geojson_write(commcorridors, geometry="polygon", file="commcorridors.geojson" )
+
+#commcorridors <- geojson_read("commcorridors.geojson", method="local", what="sp" )
+
+#Sorting
+Dat.AssetDensity <- Dat.AssetDensity[order(Dat.AssetDensity$AllAssetsRatio),]
 
 #Colors for Dat.NonRes
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
@@ -121,6 +132,8 @@ featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
 featureList4 <- c("Blank", "Suspected Zombie Property")
 featureList5 <- c("Blank", "Acquisition and Rehabilitation","Demolition + New Construction", "Demolition Only", "Distressed Property Program", "Incomplete Info", "New Construction", "Rehabilitation", "Rental Rehabilitation", "Reprogrammed 1% (36+38+39)", "Special Housing Project", "Syracuse Lead Project", "Tax Credit", "Vacant Property Program")
 featureList6 <- colnames(Dat.CCAssetCount)[c(2:27)]
+featureList7 <- c("Westcott", "DT South Salina")
+
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
@@ -218,7 +231,7 @@ ui <- fluidPage(
                             tags$li("What (if any) questions did this analysis answer or bring insight to?"),
                             tags$li("What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"),
                             tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
-                          h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire")),
+                          h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire. All data and code is stored on Github: https://github.com/subartle/Understanding-Syracuse.")),
                  tabPanel("Contacts and Data Geniuses",
                           h4("City of Syracuse Department of Neighbrohood and Business Development"),
                           h5("Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."),
@@ -312,15 +325,24 @@ ui <- fluidPage(
                           h4("...in production..."),
                           fixedRow(
                             column(4, selectInput(inputId = "CCCensus", label = "Census Information", choices = featureList3)),
-                            column(8, selectInput(inputId = "CCAsset", label = "Neighborhood Assets (Within 100 ft of Commercial Corridors)", choices = featureList6))),
+                            column(4, selectInput(inputId = "CCAsset", label = "Neighborhood Assets (Within 100 ft of Commercial Corridors)", choices = featureList6))),
                           fixedRow(
                             column(6, plotlyOutput("CCPlot", height = "500px"), 
-                                   verbatimTextOutput("CCClick")), 
-                            column(6, leafletOutput("CCAssetMap", height = "800px"))),
-                          h4("What is the density? Density = # of Assets/# of Parcels"),
+                                   verbatimTextOutput("CCClick")),
+                            column(6, leafletOutput("CCAssetMap", height = "1000px"))),
+                          h4("What is the density of each commercial corridor?"),
+                          h5("Graphic on Left = Total # of Assets/Total # of Parcels"),
+                          h5("Graphic on Right = Total # of Non Residential Assets/Total # of Parcels"),
                           fixedRow(
-                            column(6, plotlyOutput("CCDensityPlot")),
-                            column(6, leafletOutput("CorridorMap", height = "800px")))),
+                            column(6, plotlyOutput("CCDensityPlot", height = "500px")),
+                            column(6, plotlyOutput("CCDensityPlot2",  height = "500px"))),
+                          h4("Variety of Assets"),
+                          fixedRow(
+                            column(4, selectInput(inputId = "CCorridor", label = "Commercial Corridor", choices = featureList7))),
+                          fixedRow(
+                            column(6, plotlyOutput("CCVarietyPlot", height = "500px")),
+                            column(6, leafletOutput("CCVarietyMap", height = "1000px"))),
+                          h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
                  ##########PLACE-BASED APPROACH UI#############
                  tabPanel("Place-Based Approach",
@@ -578,9 +600,24 @@ server <- function(input, output, session){
         addCircleMarkers(lng = Dat.CCNonRes$Lon, lat = Dat.CCNonRes$Lat, radius = 3, color = "lightgrey") %>%
         addCircleMarkers(lng = CCNonResSubset$Lon, lat = CCNonResSubset$Lat, popup = CCNonResSubset$Entity2, radius = 5, color = "purple") %>%
         addLegend("bottomright", colors= c("gray", "purple", "orange"), labels=c("All non-res.assets along comm. corridors", "Selected asset along comm. corridors", "Census tract #"), title="Points and Icons") %>%
-        addLegend("bottomleft", pal = colorNumeric("Oranges", shape.ccasset$x, n = 5), values=shape.ccasset$x, title="input$CCCensus")
+        addLegend("bottomleft", pal = colorNumeric("Oranges", shape.ccasset$x, n = 5), values=shape.ccasset$x, title=input$CCCensus)
     })
     
+    output$CCDensityPlot <- renderPlotly({
+      plot_ly(Dat.AssetDensity, x = Corridor, y = AllAssetsRatio,
+            name = "Density: Total # of Assets/Total # of Parcels",
+            type = "bar",
+            barmode = "stack",
+            color = "orange")
+    })
+    
+    output$CCDensityPlot2 <- renderPlotly({
+      plot_ly(Dat.AssetDensity, x = Corridor, y = AllNonResAssetsRatio,
+              name = "Density: Total # of Non Residential Assets/Total # of Parcels",
+              type = "bar", 
+              barmode = "stack",
+              color = "orange")
+      })
     
     #########PLACE BASED APPROACH SERVER####
     output$AccessMap1 <- renderLeaflet({
