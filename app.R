@@ -42,8 +42,12 @@ Dat.AssetDensity <- read.csv("https://raw.githubusercontent.com/subartle/Underst
 #commcorridors <- geojson_read("commcorridors.geojson", method="local", what="sp" )
 
 #Sorting
-Dat.AssetDensity <- Dat.AssetDensity[order(Dat.AssetDensity$AllAssetsRatio),]
-
+Dat.AssetDensity <- Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
+Dat.AssetDensity2 <- Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
+Dat.DensityLength <- Dat.AssetDensity[,c(1,3,7,4)]
+colnames(Dat.DensityLength) <- c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
+Dat.DensityParcels <- Dat.AssetDensity2[,c(1,3,6,5)]
+colnames(Dat.DensityParcels) <- c("Corridor", "Occupied Assets", "All Parcels", "# of Asset/# of Parcels")
 #Colors for Dat.NonRes
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Occupied", "blue", Dat.NonRes$Color)
@@ -330,17 +334,23 @@ ui <- fluidPage(
                             column(6, plotlyOutput("CCPlot", height = "500px"), 
                                    verbatimTextOutput("CCClick")),
                             column(6, leafletOutput("CCAssetMap", height = "1000px"))),
-                          h4("What is the density of each commercial corridor?"),
-                          h5("Graphic on Left = Total # of Assets/Total # of Parcels"),
-                          h5("Graphic on Right = Total # of Non Residential Assets/Total # of Parcels"),
+                          h4("What is the density of each commercial corridor? Does the density of a corridor play a part in the health of a commercial corridor and its surrounding neighborhoods?"),
                           fixedRow(
-                            column(6, plotlyOutput("CCDensityPlot", height = "500px")),
-                            column(6, plotlyOutput("CCDensityPlot2",  height = "500px"))),
+                            column(8, plotlyOutput("CCDensityPlot", height = "500px")),
+                            column(4, h6("The ratio to the right looks at the total # of assets in each corridor (not including vacant assets) over the total length (in feet) of that corridor."),
+                                   numericInput("DensityObs1", "# of observations to view:", 7),
+                                   tableOutput("CCLengthRatio"))),
+                          fixedRow(
+                            column(8, plotlyOutput("CCDensityPlot2",  height = "500px")),
+                            column(4, h6("The ratio to the right looks at the total # of assets in each corridor (not including vacant assets) over the total # of parcels (including vacant parcels & lots) in that corridor"),
+                                   numericInput("DensityObs2", "# of observations to view:", 7),
+                                   tableOutput("CCParcelRatio"))),
                           h4("Variety of Assets"),
                           fixedRow(
                             column(4, selectInput(inputId = "CCorridor", label = "Commercial Corridor", choices = featureList7))),
                           fixedRow(
-                            column(6, plotlyOutput("CCVarietyPlot", height = "500px")),
+                            column(6, plotOutput("CCBreakdown", height = "500px"), 
+                                   plotOutput("CCVarietyPlot", height = "500px")),
                             column(6, leafletOutput("CCVarietyMap", height = "1000px"))),
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
@@ -604,20 +614,21 @@ server <- function(input, output, session){
     })
     
     output$CCDensityPlot <- renderPlotly({
-      plot_ly(Dat.AssetDensity, x = Corridor, y = AllAssetsRatio,
-            name = "Density: Total # of Assets/Total # of Parcels",
-            type = "bar",
-            barmode = "stack",
-            color = "orange")
+      plot_ly(Dat.AssetDensity, x = Corridor, y = RatioLength, color = "orange", type = "bar")
+    })
+    
+    output$CCLengthRatio <- renderTable({
+      head(Dat.DensityLength, n = input$DensityObs1)
     })
     
     output$CCDensityPlot2 <- renderPlotly({
-      plot_ly(Dat.AssetDensity, x = Corridor, y = AllNonResAssetsRatio,
-              name = "Density: Total # of Non Residential Assets/Total # of Parcels",
-              type = "bar", 
-              barmode = "stack",
-              color = "orange")
+      plot_ly(Dat.AssetDensity2, x = Corridor, y = RatioParcel, color = "orange", type = "bar")
       })
+    
+    output$CCParcelRatio <- renderTable({
+      head(Dat.DensityParcels, n = input$DensityObs2)
+    })
+    
     
     #########PLACE BASED APPROACH SERVER####
     output$AccessMap1 <- renderLeaflet({
@@ -653,7 +664,7 @@ server <- function(input, output, session){
                 key = CensusTract, 
                 hoverinfo = "text", 
                 text = paste("Census Tract:", CensusTract, "# of Projects:", ProjectCount,",", "Total Fed $:", ProjectSum), 
-                color = CensusInformation, 
+                color = CensusInfoErmation, 
                 colors = "PRGn", 
                 mode = "markers", 
                 source = "subset",
