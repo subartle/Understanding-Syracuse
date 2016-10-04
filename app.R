@@ -18,6 +18,7 @@ library(magrittr)
 library(highcharter)
 library(geojsonio)
 library(gistr)
+library(reshape)
 
 # Datasets - ASSETS 
 #Load Datasets (Assets)
@@ -25,12 +26,12 @@ Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understan
 Dat.CCAssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/CC_Grouped_Count.csv")
 Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
 Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/NonResAssets.csv")
-Dat.CCNonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CCNonResAssets.csv")
 Dat.Tract <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CensusTract.csv")
 Dat.Accessibility <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Accessibility_09-06-16.csv")
 Dat.ProblemProps <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Problems_09-06-16.csv")
 Dat.Investment <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/NBD_Investment.csv")
 Dat.AssetDensity <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/DensityRate.csv")
+Dat.CCAssets <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/CCAssets.csv")
 
 #Shapefile load (problematic atm)
 ##Converting to a jso
@@ -41,13 +42,6 @@ Dat.AssetDensity <- read.csv("https://raw.githubusercontent.com/subartle/Underst
 
 #commcorridors <- geojson_read("commcorridors.geojson", method="local", what="sp" )
 
-#Sorting
-Dat.AssetDensity <- Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
-Dat.AssetDensity2 <- Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
-Dat.DensityLength <- Dat.AssetDensity[,c(1,3,7,4)]
-colnames(Dat.DensityLength) <- c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
-Dat.DensityParcels <- Dat.AssetDensity2[,c(1,3,6,5)]
-colnames(Dat.DensityParcels) <- c("Corridor", "Occupied Assets", "All Parcels", "# of Asset/# of Parcels")
 #Colors for Dat.NonRes
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
 Dat.NonRes$Color <- ifelse(Dat.NonRes$Status == "Occupied", "blue", Dat.NonRes$Color)
@@ -129,6 +123,8 @@ colnames(Dat.CCAssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol
                               "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
                               "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle", "lon", "lat")
 
+Dat.CCAssets$Entity_Category <- as.character(Dat.CCAssets$Entity_Category)
+
 #Store features and actual class in seprate variables
 featureList1 <-  c("Blank", "City-Owned", "Seizable", "SCSD", "Greater Syracuse Land Bank", "City Park", "SMNC", "SURA", "Community Center", "O/SIDA")
 featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
@@ -136,7 +132,7 @@ featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
 featureList4 <- c("Blank", "Suspected Zombie Property")
 featureList5 <- c("Blank", "Acquisition and Rehabilitation","Demolition + New Construction", "Demolition Only", "Distressed Property Program", "Incomplete Info", "New Construction", "Rehabilitation", "Rental Rehabilitation", "Reprogrammed 1% (36+38+39)", "Special Housing Project", "Syracuse Lead Project", "Tax Credit", "Vacant Property Program")
 featureList6 <- colnames(Dat.CCAssetCount)[c(2:27)]
-featureList7 <- c("Westcott", "DT South Salina")
+featureList7 <- as.character(unique(Dat.CCAssets$Corridor))
 
 
 CensusTractC <- Dat.AssetCount$Row.Labels
@@ -182,6 +178,17 @@ nhoodIcon <- makeIcon(
   iconUrl = "Understanding-Syracuse/Images/neighbourhood-icon.png",
   iconWidth = 10, iconHeight = 10,
   iconAnchorX = 5, iconAnchorY = 5)
+
+#Asset Density Sorting
+Dat.AssetDensity <- Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
+Dat.AssetDensity2 <- Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
+Dat.DensityLength <- Dat.AssetDensity[,c(1,3,7,4)]
+colnames(Dat.DensityLength) <- c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
+Dat.DensityParcels <- Dat.AssetDensity2[,c(1,3,6,5)]
+colnames(Dat.DensityParcels) <- c("Corridor", "Occupied Assets", "All Parcels", "# of Asset/# of Parcels")
+
+#Assets along commercial corridors clean
+Dat.CCAssets$Count <- 1
 
 #Investment Data Clean
 Dat.Investment$DollarAmount <- as.numeric(as.character(Dat.Investment$DollarAmount))
@@ -337,21 +344,19 @@ ui <- fluidPage(
                           h4("What is the density of each commercial corridor? Does the density of a corridor play a part in the health of a commercial corridor and its surrounding neighborhoods?"),
                           fixedRow(
                             column(8, plotlyOutput("CCDensityPlot", height = "500px")),
-                            column(4, h6("The ratio to the right looks at the total # of assets in each corridor (not including vacant assets) over the total length (in feet) of that corridor."),
-                                   numericInput("DensityObs1", "# of observations to view:", 7),
+                            column(4, h6("The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total length (in feet) of that corridor."),
+                                   numericInput("DensityObs1", "# of rows:", 7),
                                    tableOutput("CCLengthRatio"))),
                           fixedRow(
                             column(8, plotlyOutput("CCDensityPlot2",  height = "500px")),
-                            column(4, h6("The ratio to the right looks at the total # of assets in each corridor (not including vacant assets) over the total # of parcels (including vacant parcels & lots) in that corridor"),
-                                   numericInput("DensityObs2", "# of observations to view:", 7),
+                            column(4, h6("The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total # of parcels (including vacant parcels & lots) in that corridor"),
+                                   numericInput("DensityObs2", "# of rows:", 7),
                                    tableOutput("CCParcelRatio"))),
                           h4("Variety of Assets"),
                           fixedRow(
                             column(4, selectInput(inputId = "CCorridor", label = "Commercial Corridor", choices = featureList7))),
                           fixedRow(
-                            column(6, plotOutput("CCBreakdown", height = "500px"), 
-                                   plotOutput("CCVarietyPlot", height = "500px")),
-                            column(6, leafletOutput("CCVarietyMap", height = "1000px"))),
+                            column(12, plotlyOutput("CCVarietyPlot", height = "500px"))),
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
                  ##########PLACE-BASED APPROACH UI#############
@@ -599,7 +604,7 @@ server <- function(input, output, session){
   
     output$CCAssetMap <- renderLeaflet({
       
-      CCNonResSubset <- Dat.CCNonRes[Dat.CCNonRes$Entity_Category == input$CCAsset,]
+      CCAssetSubset <- Dat.CCAssets[Dat.CCAssets$Entity_Category == input$CCAsset,]
       
       leaflet(shape.ccasset) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
@@ -607,27 +612,61 @@ server <- function(input, output, session){
         addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
                     color = ~colorNumeric("Oranges", shape.ccasset$x)(shape.ccasset$x)) %>%
         addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.ccasset$NAME)) %>%
-        addCircleMarkers(lng = Dat.CCNonRes$Lon, lat = Dat.CCNonRes$Lat, radius = 3, color = "lightgrey") %>%
-        addCircleMarkers(lng = CCNonResSubset$Lon, lat = CCNonResSubset$Lat, popup = CCNonResSubset$Entity2, radius = 5, color = "purple") %>%
+        addCircleMarkers(lng = Dat.CCAssets$Lon, lat = Dat.CCAssets$Lat, radius = 3, color = "lightgrey", popup = paste("Corridor: ", Dat.CCAssets$Corridor)) %>%
+        addCircleMarkers(lng = CCAssetSubset$Lon, lat = CCAssetSubset$Lat, popup = CCAssetSubset$Entity2, radius = 5, color = "purple") %>%
         addLegend("bottomright", colors= c("gray", "purple", "orange"), labels=c("All non-res.assets along comm. corridors", "Selected asset along comm. corridors", "Census tract #"), title="Points and Icons") %>%
         addLegend("bottomleft", pal = colorNumeric("Oranges", shape.ccasset$x, n = 5), values=shape.ccasset$x, title=input$CCCensus)
     })
     
     output$CCDensityPlot <- renderPlotly({
-      plot_ly(Dat.AssetDensity, x = Corridor, y = RatioLength, color = "orange", type = "bar")
-    })
+      pp <- ggplot(data=Dat.AssetDensity, aes(x =Corridor, y = RatioLength)) +
+        geom_bar(stat="identity", colour = "orange", fill = "orange") + 
+        ggtitle("Asset to Length Ratio: # of Assets/Length of Corridor (ft)") +
+        ylab("Ratio") + 
+        xlab(" ") +
+        coord_flip()
+      })
     
     output$CCLengthRatio <- renderTable({
       head(Dat.DensityLength, n = input$DensityObs1)
     })
     
     output$CCDensityPlot2 <- renderPlotly({
-      plot_ly(Dat.AssetDensity2, x = Corridor, y = RatioParcel, color = "orange", type = "bar")
+      ppp <- ggplot(data=Dat.AssetDensity2, aes(x =Corridor, y = RatioParcel)) +
+        geom_bar(stat="identity", colour = "orange", fill = "orange") + 
+        ggtitle("Asset to Parcel Ratio: # of Assets/# of Parcels") +
+        ylab("Ratio") + 
+        xlab(" ") +
+        coord_flip()
       })
     
     output$CCParcelRatio <- renderTable({
       head(Dat.DensityParcels, n = input$DensityObs2)
     })
+    
+    output$CCVarietyPlot <- renderPlotly({
+      CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
+      CCSubset$GeneralCategories <- as.character(CCSubset$GeneralCategories)
+      CCSubset$Count <- 1
+      CCSubset1 <- as.data.frame(tapply(CCSubset$Count, CCSubset$Entity_Category, FUN = sum))
+      CCSubset1$Category1 <- tapply(CCSubset$Entity_Category, CCSubset$Entity_Category, FUN = unique)
+      CCSubset1$Category <- tapply(CCSubset$GeneralCategories, CCSubset$Entity_Category, FUN = unique)
+      colnames(CCSubset1) <- c("Count", "Category1", "Category")
+      
+      CCSubset1$Count <- as.numeric(CCSubset1$Count)
+      CCSubset1$Category1 <- as.character(CCSubset1$Category1)
+      CCSubset1$Category <- as.factor(CCSubset1$Category)
+
+      
+      p <- ggplot(data=CCSubset1, aes(x = Category1, y=Count, fill = Category )) + 
+        scale_fill_brewer(palette = "PuOr") + 
+        geom_bar(stat="identity") + 
+        ggtitle(paste("Asset Breakdown of ", input$CCorridor)) +
+        ylab("Asset Count") + 
+        xlab(" ") +
+        coord_flip()
+      ggplotly(p)
+          })
     
     
     #########PLACE BASED APPROACH SERVER####
@@ -664,7 +703,7 @@ server <- function(input, output, session){
                 key = CensusTract, 
                 hoverinfo = "text", 
                 text = paste("Census Tract:", CensusTract, "# of Projects:", ProjectCount,",", "Total Fed $:", ProjectSum), 
-                color = CensusInfoErmation, 
+                color = CensusInformation, 
                 colors = "PRGn", 
                 mode = "markers", 
                 source = "subset",
