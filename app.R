@@ -382,6 +382,11 @@ ui <- fluidPage(
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
                             column(12, leafletOutput("AccessMap1", height = "700px")))))),
+      ##############LIFE OF A CODE VIOLATION UI############
+      tabPanel(h4("Life of a Code Violation"),
+               tabsetPanel(
+                 tabPanel("Tab Overview",
+                          fixedRow(column(12, imageOutput("codeviolationpic")))))),
       ##############WHO?##############
       tabPanel(h4("Who?"),
                tabsetPanel(
@@ -718,6 +723,13 @@ server <- function(input, output, session){
         dat.investhover[c(3,4,5)]
       })
     })
+    
+    #########LIFE OF A CODE VIOLATION SERVER####
+    output$codeviolationpic <- renderImage({list(
+      src = "Understanding-Syracuse/Images/Life of a Code Violation.png",
+      filetype = "image/png",
+      alt = "Drats! Something went wrong D:"
+    )})
   })
   }
 
