@@ -23,7 +23,6 @@ library(reshape)
 # Datasets - ASSETS 
 #Load Datasets (Assets)
 Dat.AssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Count.csv")
-Dat.CCAssetCount <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/CC_Grouped_Count.csv")
 Dat.AssetPercent <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Grouped_Percent.csv")
 Dat.NonRes <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/NonResAssets.csv")
 Dat.Tract <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CensusTract.csv")
@@ -59,7 +58,6 @@ Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
 Dat.Accessibility$lon <- as.numeric(Dat.Accessibility$lon)
 Dat.AssetCount$Row.Labels <- as.numeric(as.character(Dat.AssetCount$Row.Labels))
 Dat.AssetPercent$Row.Labels <- as.numeric(as.character(Dat.AssetPercent$Row.Labels))
-Dat.CCAssetCount$RowLabel <- as.numeric(as.character(Dat.CCAssetCount$RowLabel))
 
 #as character
 Dat.Accessibility$Accessibility <- as.character(Dat.Accessibility$Accessibility)
@@ -86,9 +84,6 @@ Dat.AssetCount <- Dat.AssetCount[, c(1:41, 57:64)]
 Dat.AssetPercent <- merge(Dat.AssetPercent, ACS14, by.x = "Row.Labels",by.y = "CensusTract")
 Dat.AssetPercent <- Dat.AssetPercent[, c(1:41, 57:64)]
 
-Dat.CCAssetCount <- merge(Dat.CCAssetCount, ACS14, by.x = "RowLabel", by.y = "CensusTract2")
-Dat.CCAssetCount <- Dat.CCAssetCount[, c(1, 4:29, 32:54)]
-
 #clean up colnames
 colnames(Dat.AssetPercent) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
                                 "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
@@ -112,17 +107,6 @@ colnames(Dat.AssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol C
                               "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
                               "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle")
 
-colnames(Dat.CCAssetCount) <- c("Row.Labels", "Nontraditional Housing", "Alcohol Commercial", "Auto Commercial", "Banks and Lending", 
-                              "Care Commercial", "Community Safety", "Convenience Commercial", "Education","Entertainment",
-                              "Food Commercial","Gasoline Commercial","Health and Wellness", "Hotel and Motel",
-                              "Infrastructure", "Legal", "Manufacturing", "Mixed Use", "Office Space", 
-                              "Public Space and Services", "Religious", "Residential", "Retail Commercial", "Shopping Center",
-                              "Storage Commercial", "Vacant Building", "Grand Total", "Population (16 Plus)", "MOE_Population_16Plus",
-                              "% of Population in the Labor Force", "MOE_Population_LaborForce", "% of Population Employed", "MOE_Population_Employed", "Unemployment Rate", 
-                              "MOE_UnemploymentRate", "# of Households", "Median Income (in dollars)", "MOE_MedianIncome_dollars", "Mean Income (in dollars)",
-                              "MOE_MeanIncome_dollars", "# of Owner Occupied Households", "# of Owner Occupants with NO Vehicle", "% of Owner Occupants with NO Vehicle", 
-                              "# Rental Occupied Households", "RONoVehicle", "%RONoVehicle", "Total # of Households", "% of Households with No Vehicle", "lon", "lat")
-
 Dat.CCAssets$Entity_Category <- as.character(Dat.CCAssets$Entity_Category)
 
 #Store features and actual class in seprate variables
@@ -131,13 +115,11 @@ featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
 featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
 featureList4 <- c("Blank", "Suspected Zombie Property")
 featureList5 <- c("Blank", "Acquisition and Rehabilitation","Demolition + New Construction", "Demolition Only", "Distressed Property Program", "Incomplete Info", "New Construction", "Rehabilitation", "Rental Rehabilitation", "Reprogrammed 1% (36+38+39)", "Special Housing Project", "Syracuse Lead Project", "Tax Credit", "Vacant Property Program")
-featureList6 <- colnames(Dat.CCAssetCount)[c(2:27)]
 featureList7 <- as.character(unique(Dat.CCAssets$Corridor))
 
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
-CensusTractCC <- Dat.CCAssetCount$Row.Labels
 
 # SHAPEFILE - CENSUS INFORMATION
 #Download Onondaga County Tracts, Onondaga County = 67
@@ -333,14 +315,13 @@ ui <- fluidPage(
                  
                  ##############COMMERCIAL CORRIDORS UI############
                  tabPanel("Commercial Corridors",
-                          h4("...in production..."),
+                          h4("What is the breakdown of each commercial corridor? What is the diversity of Use?"),
                           fixedRow(
-                            column(4, selectInput(inputId = "CCCensus", label = "Census Information", choices = featureList3)),
-                            column(4, selectInput(inputId = "CCAsset", label = "Neighborhood Assets (Within 100 ft of Commercial Corridors)", choices = featureList6))),
+                            column(12, leafletOutput("CCAssetMap", height = "500px"))),
                           fixedRow(
-                            column(6, plotlyOutput("CCPlot", height = "500px"), 
-                                   verbatimTextOutput("CCClick")),
-                            column(6, leafletOutput("CCAssetMap", height = "1000px"))),
+                            column(4, selectInput(inputId = "CCorridor", label = "Commercial Corridor", choices = featureList7))),
+                          fixedRow(
+                            column(12, plotlyOutput("CCVarietyPlot", height = "500px"))),
                           h4("What is the density of each commercial corridor? Does the density of a corridor play a part in the health of a commercial corridor and its surrounding neighborhoods?"),
                           fixedRow(
                             column(8, plotlyOutput("CCDensityPlot", height = "500px")),
@@ -352,11 +333,6 @@ ui <- fluidPage(
                             column(4, h6("The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total # of parcels (including vacant parcels & lots) in that corridor"),
                                    numericInput("DensityObs2", "# of rows:", 7),
                                    tableOutput("CCParcelRatio"))),
-                          h4("Variety of Assets"),
-                          fixedRow(
-                            column(4, selectInput(inputId = "CCorridor", label = "Commercial Corridor", choices = featureList7))),
-                          fixedRow(
-                            column(12, plotlyOutput("CCVarietyPlot", height = "500px"))),
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
                  ##########PLACE-BASED APPROACH UI#############
@@ -462,7 +438,7 @@ server <- function(input, output, session){
   
   #########PHYSICAL ASSETS SERVER####
   # Observes the second feature input for a change
-  observeEvent(c(input$Input2, input$Input1, input$Census, input$CCCensus, input$CCAsset),{
+  observeEvent(c(input$Input2, input$Input1, input$Census),{
     # Create a convenience data.frame which can be used for charting
     plot1.df <- data.frame(Dat.AssetPercent[,input$Input2],
                            Dat.AssetPercent[,input$Input1],
@@ -473,12 +449,7 @@ server <- function(input, output, session){
                            Dat.AssetCount[,input$Input1],
                            CensusTract = Dat.AssetCount$Row.Labels,
                            Income = Dat.AssetCount$`Median Income (in dollars)`)
-    
-    CCplot.df <- data.frame(Dat.CCAssetCount[,input$CCCensus],
-                            Dat.CCAssetCount[,input$CCAsset],
-                            CensusTract = Dat.CCAssetCount$Row.Labels,
-                            Income = Dat.CCAssetCount$`Median Income (in dollars)`)
-    
+
     censusInfo <- data.frame(ACS14[,input$Input2],
                              ACS14$CensusTract,
                              ACS14$lon,
@@ -489,18 +460,16 @@ server <- function(input, output, session){
                               ACS14$lon,
                               ACS14$lat)
     
-    censusInfo3 <- data.frame(ACS14[,input$CCCensus],
-                              ACS14$CensusTract,
+    censusInfo3 <- data.frame(ACS14$CensusTract,
                               ACS14$lon,
                               ACS14$lat)
     
     # Add column names
     colnames(plot1.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(plot2.df) <- c("x", "y", "CensusTract", "MedianIncome")
-    colnames(CCplot.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(censusInfo) <- c("x", "CensusTract3", "lon", "lat")
     colnames(censusInfo2) <- c("x", "CensusTract3", "lon", "lat")
-    colnames(censusInfo3) <- c("x", "CensusTract3", "lon", "lat")
+    colnames(censusInfo3) <- c("CensusTract3", "lon", "lat")
     
     #Merge shapefile with ACS 2014 data
     shape.asset <- merge(shape.Syracuse, censusInfo, by.x = "NAME",by.y = "CensusTract3")
@@ -575,52 +544,21 @@ server <- function(input, output, session){
     })
     
     #########COMMERCIAL CORRIDORS SERVER##### 
-    #fitted lines
-    fit3 <- lm(y ~ x, data = CCplot.df)
-    
-    # Do a plotly contour plot to visualize the two featres with
-    # the number of malignant cases as size
-    # Note the use of 'source' argument
-    output$CCPlot <- renderPlotly({
-      plot_ly(CCplot.df, x = x, y = y, 
-              key = CensusTract, 
-              hoverinfo = "text", 
-              text = paste("X Axis:", x,",", "Y Axis:", y,",", "Census Tract:", CensusTract), 
-              color = MedianIncome, 
-              colors = "Purples",
-              mode = "markers", 
-              source = "subset",
-              marker = list(size = 12, outliercolor = "black")) %>%
-        add_trace(data = CCplot.df, x = x, y = fitted(fit3), mode = "lines")
-      layout(title = paste("# of", input$CCAsset, "vs ", input$CCCensus),
-           xaxis = list(title = input$CCCensus),
-           yaxis = list(title = input$CCAsset),
-           dragmode =  "select",
-           showlegend = FALSE)
-    })
-    
-    output$CCClick <- renderPrint({
-      CCdat.hover <- event_data("plotly_selected", source = "subset")
-      if (is.null(CCdat.hover)) "Click and drag over points of interest" 
-      else 
-        names(CCdat.hover) <- c("1", "2", "X Axis", "Y Axis", "Census Tract")
-      CCdat.hover[c(3,4,5)]
-    })
-  
     output$CCAssetMap <- renderLeaflet({
       
-      CCAssetSubset <- Dat.CCAssets[Dat.CCAssets$Entity_Category == input$CCAsset,]
+      Dat.CCAssets$GeneralCategories <- as.factor(Dat.CCAssets$GeneralCategories)
+      
+      factpal <- colorFactor(terrain.colors(4), Dat.CCAssets$GeneralCategories)
+      
       
       leaflet(shape.ccasset) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
         addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
-                    color = ~colorNumeric("Oranges", shape.ccasset$x)(shape.ccasset$x)) %>%
+                    color = "gray") %>%
         addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.ccasset$NAME)) %>%
-        addCircleMarkers(lng = Dat.CCAssets$Lon, lat = Dat.CCAssets$Lat, radius = 3, color = "lightgrey", popup = paste("Corridor: ", Dat.CCAssets$Corridor)) %>%
-        addCircleMarkers(lng = CCAssetSubset$Lon, lat = CCAssetSubset$Lat, popup = CCAssetSubset$Entity2, radius = 5, color = "purple") %>%
-        addLegend("bottomright", colors= c("gray", "purple", "orange"), labels=c("All non-res.assets along comm. corridors", "Selected asset along comm. corridors", "Census tract #"), title="Points and Icons") %>%
-        addLegend("bottomleft", pal = colorNumeric("Oranges", shape.ccasset$x, n = 5), values=shape.ccasset$x, title=input$CCCensus)
+        addCircleMarkers(lng = Dat.CCAssets$Lon, lat = Dat.CCAssets$Lat, radius = 3, color = ~factpal(Dat.CCAssets$GeneralCategories), popup = paste("Corridor: ", Dat.CCAssets$Corridor, "; Status: ", Dat.CCAssets$GeneralCategories)) %>%
+        addLegend("bottomright", colors= c("white", "orange", "yellow", "green"), labels=c("Vacant", "Residential", "Mixed Use", "Commercial and Public Spaces"), title="Asset Use")
     })
     
     output$CCDensityPlot <- renderPlotly({
@@ -630,7 +568,7 @@ server <- function(input, output, session){
         ylab("Ratio") + 
         xlab(" ") +
         coord_flip()
-      })
+    })
     
     output$CCLengthRatio <- renderTable({
       head(Dat.DensityLength, n = input$DensityObs1)
@@ -643,7 +581,7 @@ server <- function(input, output, session){
         ylab("Ratio") + 
         xlab(" ") +
         coord_flip()
-      })
+    })
     
     output$CCParcelRatio <- renderTable({
       head(Dat.DensityParcels, n = input$DensityObs2)
@@ -661,17 +599,17 @@ server <- function(input, output, session){
       CCSubset1$Count <- as.numeric(CCSubset1$Count)
       CCSubset1$Category1 <- as.character(CCSubset1$Category1)
       CCSubset1$Category <- as.factor(CCSubset1$Category)
-
+      
       
       p <- ggplot(data=CCSubset1, aes(x = Category1, y=Count, fill = Category )) + 
-        scale_fill_brewer(palette = "PuOr") + 
+        scale_fill_brewer(palette = "YlGn") + 
         geom_bar(stat="identity") + 
         ggtitle(paste("Asset Breakdown of ", input$CCorridor)) +
         ylab("Asset Count") + 
         xlab(" ") +
         coord_flip()
       ggplotly(p)
-          })
+    })
     
     
     #########PLACE BASED APPROACH SERVER####
@@ -731,6 +669,6 @@ server <- function(input, output, session){
       alt = "Drats! Something went wrong D:"
     )})
   })
-  }
+}
 
 shinyApp(ui = ui, server = server)
