@@ -362,7 +362,26 @@ ui <- fluidPage(
       tabPanel(h4("Life of a Code Violation"),
                tabsetPanel(
                  tabPanel("Tab Overview",
-                          fixedRow(column(12, imageOutput("codeviolationpic")))))),
+                          h4("Problem Definition"),
+                          tags$ol(
+                            tags$li(c("Problem Definition: Several interviews have brought the teams attention to the Division
+                                      of Code Enforcement (DOCE) as a tool to address poverty. Conversations with the current Director of 
+                                      Code Enforcement (as well as previous Directors) and other members of the Department of
+                                      Neighborhood and Business Development list the DOCE as having great potential for impacting
+                                      unsafe living conditions. What is this potential? What is the current capacity? What can be done
+                                      to increase the capacity to meet this potential?")),
+                            tags$li("Leads: ")),
+                          h4("Data Governance & Maturity"),
+                          fixedRow(
+                            column(12, selectInput(inputId = "CodeViolationSelect", 
+                                                   label = h4("Snapshots of Previous Research"), 
+                                                   choices =    
+                                                     c("Life of a Code Violation", "Code Violation Heat Map", "Neighborhood Compliance Rate", "Demolition Strategy", 
+                                                       "Demolition Candidates", "Unfits", "Bed Bug Breakdown", "Legal Streamline Weighting System"), 
+                                                   selected = "Neighborhood Compliance Rate"))),
+                          #Vertical space
+                          fixedRow(column(12, imageOutput("CodeViolationPic")))))),
+      
       ##############WHO?##############
       tabPanel(h4("Who?"),
                tabsetPanel(
@@ -661,13 +680,64 @@ server <- function(input, output, session){
         dat.investhover[c(3,4,5)]
       })
     })
-    
     #########LIFE OF A CODE VIOLATION SERVER####
-    output$codeviolationpic <- renderImage({list(
-      src = "Understanding-Syracuse/Images/Life of a Code Violation.png",
-      filetype = "image/png",
-      alt = "Drats! Something went wrong D:"
-    )})
+    output$CodeViolationPic <- renderImage({
+      if (input$CodeViolationSelect == "Life of a Code Violation") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Life of a Code Violation.png",
+          contentType = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      } else if (input$CodeViolationSelect == "Code Violation Heat Map") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Code Violation Heat Map.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      else if (input$CodeViolationSelect == "Neighborhood Compliance Rate") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Neighborhood Compliance Rate.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      else if (input$CodeViolationSelect == "Demolition Strategy") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Demolition Strategy.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      else if (input$CodeViolationSelect == "Demolition Candidates") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Demolition Candidates.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      else if (input$CodeViolationSelect == "Unfits") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Housing Vulnerable Task Force Case Load.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      else if (input$CodeViolationSelect == "Bed Bug Breakdown") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Bed Bug PNG.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      else if (input$CodeViolationSelect == "Legal Streamline Weighting System") {
+        return(list(
+          src = "Understanding-Syracuse/Images/Legal Streamline Weighting System.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:"
+        ))
+      }
+      }, deleteFile = FALSE)
   })
 }
 
