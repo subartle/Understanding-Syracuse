@@ -225,20 +225,28 @@ ui <- fluidPage(
                             tags$li("What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"),
                             tags$li("This should link back up to the 'problem definition' and 'leads' for the next step or tab.")),
                           h5("This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire. All data and code is stored on Github: https://github.com/subartle/Understanding-Syracuse.")),
-                 tabPanel("Contacts and Data Geniuses",
+                 tabPanel("Contacts and Acknowledgements",
+                          h5("The following analysis required a tremendous amount of guidance and assistance from the following. Furthermore, several graphics were
+                             copied from previous research done by fellow teammates and partners. Please find their names and contact information below and look for 
+                             acknowledgements throughout the text. If you have questions regarding a specific graphic or piecec of analysis, please contact Susannah 
+                             Bartlett with the City of Syracuse's Department of Innovation for detailed information."),
                           h4("City of Syracuse Department of Neighbrohood and Business Development"),
+                          h5("Paul Driscoll: Commisioner - pdriscoll@syrgov.net"),
                           h5("Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."),
                           h5("Belen Cordon: Planner 1 - bcordon@syrgov.net"),
                           h5("Michelle Sczpanski: NBD Planner - msczpanski@sygovn.net"),
                           h4("Syracuse Community Geography Department"),
                           h5("Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"),
                           h4("City of Syracuse Department of Innovation"),
-                          h5("Sam Edelstein: Cheif Data Officer for the City of Syracuse - sedelstein@syrgov.net"),
+                          h5("Sam Edelstein: Cheif Data Officer - sedelstein@syrgov.net"),
+                          h5("Samantha Linnett: Program Coordinator - slinnett@syrgov.net"),
+                          h5("Adria Finch: Project Manager - afinch@syrgov.net"),
                           h5("Cassie Schmitt: Syracuse I-Team Intern - cschmitt@syrgov.net"),
                           h4("Contact Community Services"),
                           h5("Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"),
                           h4("Syracuse-Onondaga County Planning Agency"),
-                          h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net")))),
+                          h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net"),
+                          h4("Thank you!")))),
       
       ###########TWO RED BANANAS######
       tabPanel(h4("Two Red Bananas"),
@@ -357,7 +365,22 @@ ui <- fluidPage(
                             column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
-                            column(12, leafletOutput("AccessMap1", height = "700px")))))),
+                            column(12, leafletOutput("AccessMap1", height = "700px")))),
+                 
+                 #############PERSON-BASED APPROACH################
+                 tabPanel("Person-Based Approach",
+                          h4("Question: Who experiences barriers to economic opportunity in Syracuse, NY?"),
+                          tags$ol("The Census breaks Syracuse's population into thirds. 1/3rd of it's population live under the poverty line, 1/3rd are described 
+                                      as being asset limited, income constrained, employed (ALICE), and 
+                                      1/3rd are middle to high income. However, this categorization is limited as populations vary
+                                      greatly within each third. There exists some further delination by race and ethnicity, rental/ownership
+                                      status, employment status as well as extensive experience from many service providers who work everyday with
+                                      populations who utilize public services. However, understanding the various subsets of need and extent to which these needs
+                                      are being met throughout the city is difficult to accomplish on such a broad level."),
+                          tags$ol("Samantha Linnett (Program Coordinator for the Syracuse Innovation Team) took on the task of defining Syracuse's population 
+                                  using census data and her awesome design skills. Below please find the summary of her work as well as a few supplemental graphics."),
+                          fixedRow(column(8, highchartOutput("Poverty", height = "500px")))))),
+      
       ##############LIFE OF A CODE VIOLATION UI############
       tabPanel(h4("Life of a Code Violation"),
                tabsetPanel(
@@ -377,30 +400,32 @@ ui <- fluidPage(
                                                    label = h4("Snapshots of Previous Research"), 
                                                    choices =    
                                                      c("Life of a Code Violation", "Code Violation Heat Map", "Neighborhood Compliance Rate", "Demolition Strategy", 
-                                                       "Demolition Candidates", "Unfits", "Bed Bug Breakdown", "Legal Streamline Weighting System"), 
+                                                       "Demolition Candidates", "Housing Vulnerable Case Load", "Bed Bug Breakdown", "Legal Streamline Weighting System"), 
                                                    selected = "Neighborhood Compliance Rate"))),
                           #Vertical space
-                          fixedRow(column(12, imageOutput("CodeViolationPic")))))),
+                          fixedRow(column(12, imageOutput("CodeViolationPic")))),
+                 tabPanel("Violations: When|Where|What",
+                          h4("...in production...")),
+                 tabPanel("Compliance Rate",
+                          h4("...in production...")))),
       
-      ##############WHO?##############
-      tabPanel(h4("Who?"),
+      ##############CONNECTION##############
+      tabPanel(h4("Connection"),
                tabsetPanel(
                  tabPanel("Tab Overview",
                           h4("Problem Definition"),
                           tags$ol(
-                            tags$li(c("Problem Definition: The Census breaks Syracuse's population into thirds. 1/3rd of it's population live
-                                      under the poverty line, 1/3rd are described as being asset limited, income constrained, employed (ALICE), and 
-                                      1/3rd are middle to high income. However, this categorization is limited as populations vary
-                                      greatly within each 1/3rd. There exists some further delination by race and ethnicity, rental/ownership
-                                      status, employment status as well as extensive experience from many service providers who work everyday with
-                                      populations who utilize public services. However, understanding the various subsets of need and extent to which these needs
-                                      are being met throughout the city is difficult to accomplish on such a broad level. Is there a way to describe 
-                                      the citizens of Syracuse so that their needs may be more fully understood?")),
+                            tags$li(c("Problem Definition: ")),
                             tags$li(c("Leads:"))),
                           h4("Data Governance & Maturity"),
                           tags$ol(
-                            tags$li(c("Calls: "))),
-                          fixedRow(column(8, highchartOutput("Poverty", height = "500px")))),
+                            tags$li("Available Services: "),
+                            tags$li("Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"),
+                            tags$li("Calls: "))),
+                 tabPanel("Available Services",
+                          h4("...in production...")),
+                 tabPanel("Transportation",
+                          h4("...in production...")),
                  tabPanel("Calls",
                           h4("...in production...")))))))
 
@@ -716,7 +741,7 @@ server <- function(input, output, session){
           alt = "Drats! Something went wrong D:"
         ))
       }
-      else if (input$CodeViolationSelect == "Unfits") {
+      else if (input$CodeViolationSelect == "Housing Vulnerable Case Load") {
         return(list(
           src = "Understanding-Syracuse/Images/Housing Vulnerable Task Force Case Load.png",
           filetype = "image/png",
