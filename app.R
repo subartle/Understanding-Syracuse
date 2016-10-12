@@ -19,6 +19,8 @@ library(highcharter)
 library(geojsonio)
 library(gistr)
 library(reshape)
+library(gmapsdistance)
+#devtools::install_github("rodazuero/gmapsdistance")
 
 # Datasets - ASSETS 
 #Load Datasets (Assets)
@@ -31,6 +33,14 @@ Dat.ProblemProps <- read.csv("https://raw.githubusercontent.com/subartle/Underst
 Dat.Investment <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/NBD_Investment.csv")
 Dat.AssetDensity <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/DensityRate.csv")
 Dat.CCAssets <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/CCAssets.csv")
+Dat.CountyCentroStops <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Raw/CountyCentro_BusStops.csv")
+Dat.CentroStopsCounts <- read.csv("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/CentroStops_Counts_ByCensusTracts.csv")
+#API Key for transportation time and distance
+APIkey <- ('AIzaSyCoHparOPrgG4hU6QFUR4yEOkkfj53IcZ0')
+
+#transit mini table of coordinates
+Dat.Tract$Concat <- paste(Dat.Tract$lat,"+",Dat.Tract$lon)
+Dat.Tract$Concat <- gsub(" ", "", Dat.Tract$Concat, fixed = TRUE)
 
 #Shapefile load (problematic atm)
 ##Converting to a jso
@@ -115,8 +125,9 @@ featureList2 <- colnames(Dat.AssetPercent)[c(2:27)]
 featureList3 <- colnames(Dat.AssetPercent)[c(29,37,42,45,31,49, 35,38,40)]
 featureList4 <- c("Blank", "Suspected Zombie Property")
 featureList5 <- c("Blank", "Acquisition and Rehabilitation","Demolition + New Construction", "Demolition Only", "Distressed Property Program", "Incomplete Info", "New Construction", "Rehabilitation", "Rental Rehabilitation", "Reprogrammed 1% (36+38+39)", "Special Housing Project", "Syracuse Lead Project", "Tax Credit", "Vacant Property Program")
+featureList6 <- c("transit", "bicycling", "walking", "driving")
 featureList7 <- as.character(unique(Dat.CCAssets$Corridor))
-
+featureList8 <- c("TransitCount", "% of Households with No Vehicle", "Population (16 Plus)",  "Median Income (in dollars)")
 
 CensusTractC <- Dat.AssetCount$Row.Labels
 CensusTractP <- Dat.AssetPercent$Row.Labels
@@ -182,6 +193,15 @@ colnames(investmentSummary) <- (c("ProjectSum", "ProjectCount", "CensusTract"))
 investmentSummary$ProjectSum <- as.numeric(investmentSummary$ProjectSum)
 investmentSummary$ProjectCount <- as.numeric(investmentSummary$ProjectCount)
 investmentSummary <- merge(ACS14, investmentSummary, by.x = "CensusTract",by.y = "CensusTract")
+
+#Transit Counts and Census Data
+TransitCounts <- merge(Dat.CentroStopsCounts, ACS14, by.x = "CensusTract3",by.y = "CensusTract3")
+TransitCounts <- TransitCounts[,c(1:6,9,18,23:24,26:29)]
+#Class of first Census Tract
+TransitCounts$CensusTract1 <- as.character(TransitCounts$CensusTract1)
+#Sort Transit Data
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
+TransitCounts$CT <- factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
 # ui.R definition
 ui <- fluidPage(
@@ -409,7 +429,7 @@ ui <- fluidPage(
                  tabPanel("Compliance Rate",
                           h4("...in production...")))),
       
-      ##############CONNECTION##############
+      ##############CONNECTION UI##############
       tabPanel(h4("Connection"),
                tabsetPanel(
                  tabPanel("Tab Overview",
@@ -425,7 +445,15 @@ ui <- fluidPage(
                  tabPanel("Available Services",
                           h4("...in production...")),
                  tabPanel("Transportation",
-                          h4("...in production...")),
+                          fixedRow(
+                            column(4, selectInput(inputId = "TransitCensus", label = "Census Level Data", choices = featureList8))),
+                          fixedRow(
+                            column(6, leafletOutput("TransportationMap1", height = "700px")),
+                            column(6, plotlyOutput("TransportationGraph1", height = "700px"))),
+                          fixedRow(
+                            column(4, selectInput(inputId = "TransportMode", label = "Mode of Transportation", choices = featureList6))),
+                          fixedRow(
+                            column(12, leafletOutput("TransportationMap2", height = "700px")))),
                  tabPanel("Calls",
                           h4("...in production...")))))))
 
@@ -438,7 +466,7 @@ server <- function(input, output, session){
   output$myMethod1 <- renderImage({list(
     src = "Understanding-Syracuse/Images/Method1.png",
     filetype = "image/png",
-    alt = "Drats! Something went wrong D:"
+    alt = "Drats! Something went wrong D:" 
   )})
   
   # Create a space for maps
@@ -508,15 +536,22 @@ server <- function(input, output, session){
                               ACS14$lon,
                               ACS14$lat)
     
+    censusInfo4 <- data.frame(TransitCounts[,input$TransitCensus],
+                              TransitCounts$CensusTract1,
+                              TransitCounts$lon.x,
+                              TransitCounts$lat.x)
+    
     # Add column names
     colnames(plot1.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(plot2.df) <- c("x", "y", "CensusTract", "MedianIncome")
     colnames(censusInfo) <- c("x", "CensusTract3", "lon", "lat")
     colnames(censusInfo2) <- c("x", "CensusTract3", "lon", "lat")
     colnames(censusInfo3) <- c("CensusTract3", "lon", "lat")
+    colnames(censusInfo4) <- c("x", "CensusTract3", "lon", "lat")
     
     #Merge shapefile with ACS 2014 data
     shape.asset <- merge(shape.Syracuse, censusInfo, by.x = "NAME",by.y = "CensusTract3")
+    shape.transit <- merge(shape.Syracuse, censusInfo4, by.x = "NAME",by.y = "CensusTract3")
     shape.access <- merge(shape.Syracuse, censusInfo2, by.x = "NAME",by.y = "CensusTract3")
     shape.ccasset <- merge(shape.Syracuse, censusInfo3, by.x = "NAME",by.y = "CensusTract3")
     
@@ -763,6 +798,29 @@ server <- function(input, output, session){
         ))
       }
       }, deleteFile = FALSE)
+    ###############CONNECTION SERVER#########
+    output$TransportationMap1 <- renderLeaflet({
+      
+      leaflet(shape.transit) %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron") %>%
+        addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
+                    color = ~colorNumeric("Greens", shape.transit$x)(shape.transit$x)) %>%
+        addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.transit$NAME)) %>%
+        addCircleMarkers(lng = Dat.CountyCentroStops$stop_lon, lat = Dat.CountyCentroStops$stop_lat, radius = 1, color = "midnightblue") %>%
+        addLegend("bottomright", colors= "midnightblue", labels="Centro Bus Stop", title="Legend") %>%
+        addLegend("bottomleft", pal = colorNumeric("Greens", shape.transit$x, n = 5), values=shape.transit$x, title= input$TransitCensus)
+    })
+    
+    output$TransportationGraph1 <- renderPlotly({
+      tranp <- ggplot(data=TransitCounts, aes(x = CT , y = TransitCount)) +
+        geom_bar(stat="identity", colour = "midnightblue", fill = "midnightblue") + 
+        ggtitle("# of Public Transit Stops within each Census Tract") +
+        ylab("Count of Transits") + 
+        xlab(" ") +
+        coord_flip()
+    })
+    
   })
 }
 
