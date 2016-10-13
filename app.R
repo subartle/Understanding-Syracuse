@@ -268,8 +268,8 @@ ui <- fluidPage(
                           h5("Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net"),
                           h4("Thank you!")))),
       
-      ###########TWO RED BANANAS######
-      tabPanel(h4("Two Red Bananas"),
+      ###########PLACED-BASED APPROACH######
+      tabPanel(h4("Place-Based Approach"),
                tabsetPanel(
                  tabPanel("Tab Overview",
                           h4("Problem Definition"),
@@ -278,8 +278,7 @@ ui <- fluidPage(
                                       and lack of resources throughout the city of Syracuse. When poverty, unemployment, lack 
                                       of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a 
                                       common trend appears: two large, curvature areas arc across the North and Southwest. In 
-                                      meetings, these areas are often described as", tags$div(HTML(paste(tags$span(style="color:red", 
-                                                                                                                   "two red bananas")))), "(hence the tab name). Although accurate in relaying where social 
+                                      meetings, these areas are often described as 'two red bananas'. Although accurate in relaying where social 
                                       issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there 
                                       a way to use data to further differentiate and delineate the needs within these neighborhoods?")),
                             tags$li("Leads: A preliminary review of the analysis done was humbling. Analysts from the Syracuse University's 
@@ -298,11 +297,23 @@ ui <- fluidPage(
                           tags$ol("Place-Based Approach: Data was provided by the Department of Neighborhood and Business Development. The suspected 
                                   zombie properties list was taken from the City of Syracuse Application for 'Zombie' and Vacant Properties Remediation 
                                   and Prevention Initiative (prepared by Stephanie Pasquale and Michelle Sczpanski) "),
+                          h4("Snapshots of Previous Research"),
+                          tags$ol("Fact Sheets: Samantha Linnett (Program Coordinator for the Syracuse Innovation Team) took on the task of defining 
+                                  Syracuse's population using census data and her awesome design skills."),
+                          tags$ol("Opportunity Indicies: Alys Mann and CNY Fair Housing defined what opportunity was and where it existed 
+                                  throughout Onondaga County in the 2014 Analysis of Impediments to Fair Housing Report 
+                                  (http://cnyfairhousing.org/wp-content/uploads/2014/11/CNY-Fair-Housing-sm2.pdf). Summaries of their work can be 
+                                  found below."),
+                          tags$ol("Access to Capital: Jonnell Robinson and staff at the Syracuse Community Geography Department have done extensive 
+                                  research into the underlying causes of poverty and lack of opportunity. the 'Redlining' and 'Banks and Lending' tabs
+                                  are brief summaries of their research into access to capital."),
                           fixedRow(
                             column(12, selectInput(inputId = "redBananasSelect", 
-                                                   label = h4("Snapshots of Previous Research"), 
-                                                   choices = c("Opportunity Indices Part 1", "Opportunity Indices Part 2", "Banks and Lending", "Redlining"), 
-                                                   selected = "Redlining"))),
+                                                   label = " ", 
+                                                   choices = c("General Factsheet", "Business Factsheet", "Crime Factsheet", "Education Factsheet", 
+                                                               "Health Factsheet", "Housing Factsheet", "Opportunity Indices Part 1", "Opportunity Indices Part 2", 
+                                                               "Banks and Lending", "Redlining"), 
+                                                   selected = "General"))),
                           
                           #Vertical space
                           fixedRow(column(12, imageOutput("redBananasPic")))),
@@ -363,15 +374,14 @@ ui <- fluidPage(
                                    tableOutput("CCParcelRatio"))),
                           h5("This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights.")),
                  
-                 ##########PLACE-BASED APPROACH UI#############
-                 tabPanel("Place-Based Approach",
+                 ##########RESIDENTIAL PROJECTS UI#############
+                 tabPanel("Residential Projects",
                           h4("Question: What has been the City’s place-based approach? Where has money been invested and in what way?"),
                           h4("Observations: Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"),
                           fixedRow(
                             column(4, selectInput(inputId = "Census2", label = "Census Information", choices = featureList3))),
                           fixedRow(
-                            column(8, plotlyOutput("PlotInvested", height = "400px")),
-                            column(4, verbatimTextOutput("investClick"))),
+                            column(8, plotlyOutput("PlotInvested", height = "400px"))),
                           tags$ol("HOW TO:",
                                   h5("Step 1: The drop down labeled 'Accessible Properties' displays points where the City or a City partner currently has or has potential to take parcel ownership. Therefore, there is potential for a place based project."),
                                   h5("Step 2: The drop down labeled 'Inaccessible Properties' displays points where the City would struggle to gain access to a parcel."),
@@ -385,24 +395,48 @@ ui <- fluidPage(
                             column(4, selectInput(inputId = "Census", label = "Census Information", choices = featureList3)),
                             column(4, selectInput(inputId = "Investment", label = "Property Investments", choices = featureList5))),
                           fixedRow(
-                            column(12, leafletOutput("AccessMap1", height = "700px")))),
-                 
-                 #############PERSON-BASED APPROACH################
-                 tabPanel("Person-Based Approach",
-                          h4("Question: Who experiences barriers to economic opportunity in Syracuse, NY?"),
-                          tags$ol("The Census breaks Syracuse's population into thirds. 1/3rd of it's population live under the poverty line, 1/3rd are described 
-                                      as being asset limited, income constrained, employed (ALICE), and 
-                                      1/3rd are middle to high income. However, this categorization is limited as populations vary
-                                      greatly within each third. There exists some further delination by race and ethnicity, rental/ownership
-                                      status, employment status as well as extensive experience from many service providers who work everyday with
-                                      populations who utilize public services. However, understanding the various subsets of need and extent to which these needs
-                                      are being met throughout the city is difficult to accomplish on such a broad level."),
-                          tags$ol("Samantha Linnett (Program Coordinator for the Syracuse Innovation Team) took on the task of defining Syracuse's population 
-                                  using census data and her awesome design skills. Below please find the summary of her work as well as a few supplemental graphics."),
-                          fixedRow(column(8, highchartOutput("Poverty", height = "500px")))))),
+                            column(12, leafletOutput("AccessMap1", height = "700px")))))),
+
       
-      ##############LIFE OF A CODE VIOLATION UI############
-      tabPanel(h4("Life of a Code Violation"),
+      ##############COMMUNITY CONNECTION UI##############
+      tabPanel(h4("Community Connection"),
+               tabsetPanel(
+                 tabPanel("Tab Overview",
+                          h4("Problem Definition"),
+                          tags$ol(
+                            tags$li(c("Problem Definition: Throughout the interview process, service providers and constituents alike say that there
+                                      is no lack of services in Syracuse but that the problem lies instead with connecting people to those services.
+                                      When we ask service providers how people hear about their service the answer has been almost exclusively 'word-
+                                      of-mouth.' Additionally, interviewees have listed the actually physical/locational connection between their 
+                                      services and the people who need them as problematic. This is normally identified as 'lack of transportation.'
+                                      However, others have identified this as a need for service providers to 'meet people where they are at' instead
+                                      of expecting people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?")),
+                            tags$li(c("Leads: Samantha Linnett and I met with Cheryl Giarrusso of Central New York's 211. They have offered to share call
+                                      data and service provider data."))),
+                          h4("Data Governance & Maturity"),
+                          tags$ol(
+                            tags$li("Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"),
+                            tags$li("Available Services: Over the duration of CNY 211's 30 years, they have tracked and logged any service provider within the 
+                                    5 contiguous counties. They are going to provide the full list of programs/services throughout the city of Syracuse and Onondaga 
+                                    County, their hours of operations, the categories of services they provide, address and the # of referrals per service."),
+                            tags$li("Calls: CNY 211 has offered to provide their call data at the zip code level for Syracuse: # of calls, subject of the call,
+                                    time and date of the call. We are also looking into police call data and cityline call data."))),
+                 tabPanel("Transportation",
+                          fixedRow(
+                            column(12, leafletOutput("TransportationMap1", height = "700px"))),
+                          fixedRow(
+                            column(4, selectInput(inputId = "TransitCensus", label = "Census Level Data", choices = featureList8))),
+                          fixedRow(
+                            column(6, plotlyOutput("TransportationGraph1", height = "700px")),
+                            column(6, leafletOutput("TransportationMap2", height = "700px"))),
+                          fixedRow(
+                            column(4, selectInput(inputId = "TransportMode", label = "Mode of Transportation", choices = featureList6))),
+                          fixedRow(
+                            column(6, leafletOutput("TransportationMap3", height = "700px")),
+                            column(6, plotlyOutput("TransportationGraph2", height = "700px")))))),
+      
+      ##############DOCE UI############
+      tabPanel(h4("DOCE"),
                tabsetPanel(
                  tabPanel("Tab Overview",
                           h4("Problem Definition"),
@@ -423,39 +457,7 @@ ui <- fluidPage(
                                                        "Demolition Candidates", "Housing Vulnerable Case Load", "Bed Bug Breakdown", "Legal Streamline Weighting System"), 
                                                    selected = "Neighborhood Compliance Rate"))),
                           #Vertical space
-                          fixedRow(column(12, imageOutput("CodeViolationPic")))),
-                 tabPanel("Violations: When|Where|What",
-                          h4("...in production...")),
-                 tabPanel("Compliance Rate",
-                          h4("...in production...")))),
-      
-      ##############CONNECTION UI##############
-      tabPanel(h4("Connection"),
-               tabsetPanel(
-                 tabPanel("Tab Overview",
-                          h4("Problem Definition"),
-                          tags$ol(
-                            tags$li(c("Problem Definition: ")),
-                            tags$li(c("Leads:"))),
-                          h4("Data Governance & Maturity"),
-                          tags$ol(
-                            tags$li("Available Services: "),
-                            tags$li("Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"),
-                            tags$li("Calls: "))),
-                 tabPanel("Available Services",
-                          h4("...in production...")),
-                 tabPanel("Transportation",
-                          fixedRow(
-                            column(4, selectInput(inputId = "TransitCensus", label = "Census Level Data", choices = featureList8))),
-                          fixedRow(
-                            column(6, leafletOutput("TransportationMap1", height = "700px")),
-                            column(6, plotlyOutput("TransportationGraph1", height = "700px"))),
-                          fixedRow(
-                            column(4, selectInput(inputId = "TransportMode", label = "Mode of Transportation", choices = featureList6))),
-                          fixedRow(
-                            column(12, leafletOutput("TransportationMap2", height = "700px")))),
-                 tabPanel("Calls",
-                          h4("...in production...")))))))
+                          fixedRow(column(12, imageOutput("CodeViolationPic")))))))))
 
 # server.R definition
 server <- function(input, output, session){
@@ -463,19 +465,6 @@ server <- function(input, output, session){
   #########ABOUT SERVER##############
   
   #########METHODOLOGY SERVER########
-  output$myMethod1 <- renderImage({list(
-    src = "Understanding-Syracuse/Images/Method1.png",
-    filetype = "image/png",
-    alt = "Drats! Something went wrong D:" 
-  )})
-  
-  # Create a space for maps
-  output$myMethod2 <- renderImage({list(
-    src = "Understanding-Syracuse/Images/Method2.png",
-    filetype = "image/png",
-    alt = "Drats! Something went wrong D:"
-  )})
-  
   output$redBananasPic <- renderImage({
     if (input$redBananasSelect == "Opportunity Indices Part 1") {
       return(list(
@@ -504,7 +493,48 @@ server <- function(input, output, session){
         alt = "Drats! Something went wrong D:"
       ))
     }
-    
+    else if (input$redBananasSelect == "General Factsheet") {
+      return(list(
+        src = "Understanding-Syracuse/Images/General.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Business Factsheet") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Business.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Crime Factsheet") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Crime.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Education Factsheet") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Education.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Health Factsheet") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Health.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
+    else if (input$redBananasSelect == "Housing Factsheet") {
+      return(list(
+        src = "Understanding-Syracuse/Images/Housing.png",
+        filetype = "image/png",
+        alt = "Drats! Something went wrong D:"
+      ))
+    }
   }, deleteFile = FALSE)
   
   
@@ -521,7 +551,7 @@ server <- function(input, output, session){
                            Dat.AssetCount[,input$Input1],
                            CensusTract = Dat.AssetCount$Row.Labels,
                            Income = Dat.AssetCount$`Median Income (in dollars)`)
-
+    
     censusInfo <- data.frame(ACS14[,input$Input2],
                              ACS14$CensusTract,
                              ACS14$lon,
@@ -691,7 +721,7 @@ server <- function(input, output, session){
     })
     
     
-    #########PLACE BASED APPROACH SERVER####
+    #########RESIDENTIAL PROJECTS SERVER####
     output$AccessMap1 <- renderLeaflet({
       
       accessSubset <- Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
@@ -740,7 +770,7 @@ server <- function(input, output, session){
         dat.investhover[c(3,4,5)]
       })
     })
-    #########LIFE OF A CODE VIOLATION SERVER####
+    #########DOCE SERVER####
     output$CodeViolationPic <- renderImage({
       if (input$CodeViolationSelect == "Life of a Code Violation") {
         return(list(
@@ -797,9 +827,27 @@ server <- function(input, output, session){
           alt = "Drats! Something went wrong D:"
         ))
       }
-      }, deleteFile = FALSE)
-    ###############CONNECTION SERVER#########
+    }, deleteFile = FALSE)
+    ###############COMMUNITY CONNECTION SERVER#########
     output$TransportationMap1 <- renderLeaflet({
+      
+      leaflet(shape.Syracuse) %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron") %>%
+        addCircleMarkers(lng = Dat.CountyCentroStops$stop_lon, lat = Dat.CountyCentroStops$stop_lat, radius = 1, color = "midnightblue") %>%
+        addLegend("bottomright", colors= "midnightblue", labels="Centro Bus Stop", title="Legend")
+    })
+    
+    output$TransportationGraph1 <- renderPlotly({
+      tranp <- ggplot(data=TransitCounts, aes(x = CT , y = TransitCount)) +
+        geom_bar(stat="identity", colour = "mediumseagreen", fill = "mediumseagreen") + 
+        ggtitle("# of Public Transit Stops within each Census Tract") +
+        ylab("Count of Transits") + 
+        xlab(" ") +
+        coord_flip()
+    })
+    
+    output$TransportationMap2 <- renderLeaflet({
       
       leaflet(shape.transit) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
@@ -807,20 +855,8 @@ server <- function(input, output, session){
         addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
                     color = ~colorNumeric("Greens", shape.transit$x)(shape.transit$x)) %>%
         addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.transit$NAME)) %>%
-        addCircleMarkers(lng = Dat.CountyCentroStops$stop_lon, lat = Dat.CountyCentroStops$stop_lat, radius = 1, color = "midnightblue") %>%
-        addLegend("bottomright", colors= "midnightblue", labels="Centro Bus Stop", title="Legend") %>%
         addLegend("bottomleft", pal = colorNumeric("Greens", shape.transit$x, n = 5), values=shape.transit$x, title= input$TransitCensus)
     })
-    
-    output$TransportationGraph1 <- renderPlotly({
-      tranp <- ggplot(data=TransitCounts, aes(x = CT , y = TransitCount)) +
-        geom_bar(stat="identity", colour = "midnightblue", fill = "midnightblue") + 
-        ggtitle("# of Public Transit Stops within each Census Tract") +
-        ylab("Count of Transits") + 
-        xlab(" ") +
-        coord_flip()
-    })
-    
   })
 }
 
