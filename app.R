@@ -41,6 +41,8 @@ APIkey <- ('AIzaSyCoHparOPrgG4hU6QFUR4yEOkkfj53IcZ0')
 #transit mini table of coordinates
 Dat.Tract$Concat <- paste(Dat.Tract$lat,"+",Dat.Tract$lon)
 Dat.Tract$Concat <- gsub(" ", "", Dat.Tract$Concat, fixed = TRUE)
+origin = Dat.Tract$Concat
+mode = "transit"
 
 #Shapefile load (problematic atm)
 ##Converting to a jso
@@ -405,12 +407,11 @@ ui <- fluidPage(
                           h4("Problem Definition"),
                           tags$ol(
                             tags$li(c("Problem Definition: Throughout the interview process, service providers and constituents alike say that there
-                                      is no lack of services in Syracuse but that the problem lies instead with connecting people to those services.
-                                      When we ask service providers how people hear about their service the answer has been almost exclusively 'word-
-                                      of-mouth.' Additionally, interviewees have listed the actually physical/locational connection between their 
-                                      services and the people who need them as problematic. This is normally identified as 'lack of transportation.'
-                                      However, others have identified this as a need for service providers to 'meet people where they are at' instead
-                                      of expecting people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?")),
+                                      is no lack of services in Syracuse, the problem lies instead with connecting people to those services.
+                                      When we ask how constituents hear about available services, the answer has been almost exclusively 'word-
+                                      of-mouth.' Additionally, interviewees have listed transportation to services as being problematic. 
+                                      An additional theme is that service providers do not 'meet people where they are at' and instead
+                                      expect people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?")),
                             tags$li(c("Leads: Samantha Linnett and I met with Cheryl Giarrusso of Central New York's 211. They have offered to share call
                                       data and service provider data."))),
                           h4("Data Governance & Maturity"),
@@ -420,20 +421,31 @@ ui <- fluidPage(
                                     5 contiguous counties. They are going to provide the full list of programs/services throughout the city of Syracuse and Onondaga 
                                     County, their hours of operations, the categories of services they provide, address and the # of referrals per service."),
                             tags$li("Calls: CNY 211 has offered to provide their call data at the zip code level for Syracuse: # of calls, subject of the call,
-                                    time and date of the call. We are also looking into police call data and cityline call data."))),
-                 tabPanel("Transportation",
+                                    time and date of the call. We are also looking into police call data and cityline call data.")),
+                          fixedRow(
+                            column(12, selectInput(inputId = "CommunityConncetionPics",
+                                                          label = h4("Snapshots of Previous Research"),
+                                                          choices = c("Public Transportation Report", "Community Centers")))),
+                          fixedRow(imageOutput("CommunityConnectionPic"))),
+                 
+                 ################PUBLIC TRANSPORTATION UI##############
+                 tabPanel("Public Transportation",
                           fixedRow(
                             column(12, leafletOutput("TransportationMap1", height = "700px"))),
+                          tags$hr(),
                           fixedRow(
                             column(4, selectInput(inputId = "TransitCensus", label = "Census Level Data", choices = featureList8))),
                           fixedRow(
                             column(6, plotlyOutput("TransportationGraph1", height = "700px")),
                             column(6, leafletOutput("TransportationMap2", height = "700px"))),
+                          tags$hr(),
                           fixedRow(
-                            column(4, selectInput(inputId = "TransportMode", label = "Mode of Transportation", choices = featureList6))),
-                          fixedRow(
-                            column(6, leafletOutput("TransportationMap3", height = "700px")),
-                            column(6, plotlyOutput("TransportationGraph2", height = "700px")))))),
+                            column(8, leafletOutput("TransportationMap3", height = "700px")),
+                            column(4, h6("The map to the left looks at the minutes it takes to get from the center of each census tract to a specific location (i.e. downtown) using public transportation divided
+                                         by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
+                                         to no range and a small standard deviation."),
+                                   numericInput("TransportObs1", "# of rows:", 16),
+                                   tableOutput("TransportTable1")))))),
       
       ##############DOCE UI############
       tabPanel(h4("DOCE"),
@@ -540,7 +552,7 @@ server <- function(input, output, session){
   
   #########PHYSICAL ASSETS SERVER####
   # Observes the second feature input for a change
-  observeEvent(c(input$Input2, input$Input1, input$Census),{
+  observeEvent(c(input$Input2, input$Input1, input$Census, input$TransitCensus, input$TransportMode),{
     # Create a convenience data.frame which can be used for charting
     plot1.df <- data.frame(Dat.AssetPercent[,input$Input2],
                            Dat.AssetPercent[,input$Input1],
@@ -682,7 +694,7 @@ server <- function(input, output, session){
     output$CCLengthRatio <- renderTable({
       head(Dat.DensityLength, n = input$DensityObs1)
     })
-    
+
     output$CCDensityPlot2 <- renderPlotly({
       ppp <- ggplot(data=Dat.AssetDensity2, aes(x =Corridor, y = RatioParcel)) +
         geom_bar(stat="identity", colour = "orange", fill = "orange") + 
@@ -829,13 +841,15 @@ server <- function(input, output, session){
       }
     }, deleteFile = FALSE)
     ###############COMMUNITY CONNECTION SERVER#########
+    ###############PUBLIC TRANSPORTATION SERVER############
+    
     output$TransportationMap1 <- renderLeaflet({
       
       leaflet(shape.Syracuse) %>%
         setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
         addProviderTiles("CartoDB.Positron") %>%
-        addCircleMarkers(lng = Dat.CountyCentroStops$stop_lon, lat = Dat.CountyCentroStops$stop_lat, radius = 1, color = "midnightblue") %>%
-        addLegend("bottomright", colors= "midnightblue", labels="Centro Bus Stop", title="Legend")
+        addCircleMarkers(lng = Dat.CountyCentroStops$stop_lon, lat = Dat.CountyCentroStops$stop_lat, radius = 1, color = "mediumseagreen") %>%
+        addLegend("bottomright", colors= "mediumseagreen", labels="Centro Bus Stop", title="Legend")
     })
     
     output$TransportationGraph1 <- renderPlotly({
@@ -857,7 +871,50 @@ server <- function(input, output, session){
         addMarkers(~lon, ~lat, icon = nhoodIcon, popup = paste("Census Tract: ", shape.transit$NAME)) %>%
         addLegend("bottomleft", pal = colorNumeric("Greens", shape.transit$x, n = 5), values=shape.transit$x, title= input$TransitCensus)
     })
+    
+    output$TransportationMap3 <- renderLeaflet({
+      
+      destination = "43.0479517596+-76.1505944348"
+
+      results = gmapsdistance(origin, destination, mode = mode, key = APIkey, shape = "long" )
+      results <- as.data.frame(results)
+      results2 <- results[,c(1:3,6)]
+      colnames(results2) <- c("Origin", "Destination", "Time_Seconds", "Dist_Meters")
+      results2$Dist_Miles <- round(results2$Dist_Meters*.000621371, 2)
+      results2$Time_Minutes <- round(results2$Time_Seconds*.0166667, 2)
+      
+      Dat.Tract_Dist <- merge(Dat.Tract, results2, by.x = "Concat",by.y = "Origin")
+      Dat.Tract_Dist$TimeOverDist <- Dat.Tract_Dist$Time_Minutes/Dat.Tract_Dist$Dist_Miles
+      
+     Dat.DistTime <- merge(shape.Syracuse, Dat.Tract_Dist, by.x = "NAME", by.y = "NAME")
+      
+      leaflet(Dat.DistTime) %>%
+        setView(lng= -76.1474, lat=43.0481, zoom = 12) %>% 
+        addProviderTiles("CartoDB.Positron") %>%
+        addPolygons(stroke = FALSE, fillOpacity = 0.7, smoothFactor = 0.5,
+                    color = ~colorNumeric("Greens", Dat.DistTime$TimeOverDist)(Dat.DistTime$TimeOverDist),
+                    popup = paste("Time to Destination: ", Dat.DistTime$Time_Minutes, "Miles to Destination: ", Dat.DistTime$Dist_Miles))
+      })
+    
+    output$TransportTable1 <- renderTable({
+      
+      destination = "43.0479517596+-76.1505944348"
+      
+      results = gmapsdistance(origin, destination, mode = mode, key = APIkey, shape = "long" )
+      results <- as.data.frame(results)
+      results2 <- results[,c(1:3,6)]
+      colnames(results2) <- c("Origin", "Destination", "Time_Seconds", "Dist_Meters")
+      results2$Dist_Miles <- round(results2$Dist_Meters*.000621371, 2)
+      results2$Time_Minutes <- round(results2$Time_Seconds*.0166667, 2)
+      
+      Dat.Tract_Dist <- merge(Dat.Tract, results2, by.x = "Concat",by.y = "Origin")
+      Dat.Tract_Dist$TimeOverDist <- Dat.Tract_Dist$Time_Minutes/Dat.Tract_Dist$Dist_Miles
+      Dat.Tract_Dist2 <- Dat.Tract_Dist[,c(2,8:10)]
+      Dat.Tract_Dist2 <- Dat.Tract_Dist2[order(Dat.Tract_Dist2$TransitCount),]
+      
+      head(Dat.Tract_Dist2, n = input$TransportObs1)
+      })
   })
-}
+  }
 
 shinyApp(ui = ui, server = server)
