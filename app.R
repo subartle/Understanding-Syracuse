@@ -1074,7 +1074,35 @@ ui <- fluidPage(# Set theme
                  )),
                  #Vertical space
                  fixedRow(column(12, imageOutput("CodeViolationPic")))
-                 )
+                 ),
+               
+               #########COMPLAINTS V VIOLATION DATA UI##################
+               tabPanel(
+                 "Complaint vs. Violation Data",
+                 h4("See the shift and growth of complaints overtime"),
+                 fixedRow(column(
+                   3,
+                   checkboxGroupInput(
+                     inputId = "ComplaintSelect",
+                     label = h4("Complaint types (used 100+ times):"),
+                     choices = featureList9,
+                     selected = "Bed Bugs"
+                   )
+                 ),
+                 column(9, dygraphOutput("ComplaintGraph1"))),
+                 fixedRow(column(
+                   12,
+                   selectInput(
+                     inputId = "HeatMapSort",
+                     label = "Which case status would you like to sort by?",
+                     choices = featureList10,
+                     selected = "High Priority Review"
+                   )
+                 )),
+                 fixedRow(column(
+                   12, d3heatmapOutput("violationHeatmap", height = "1000px")
+                 ))
+               )
                  ))
                )))
 
