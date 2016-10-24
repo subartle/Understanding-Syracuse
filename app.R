@@ -107,8 +107,8 @@ Dat.AssetPercent[, c(2:28, 31:34)] <-
   round(100 * Dat.AssetPercent[, c(2:28, 31:34)], 2)
 
 #Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55), ]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55), ]
+Dat.AssetCount <- Dat.AssetCount[c(1:55),]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
 
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
@@ -393,7 +393,7 @@ shape.Syracuse <-
                  shape.Tracts$NAME == 60 |
                  shape.Tracts$NAME == 61.01 |
                  shape.Tracts$NAME == 61.02 |
-                 shape.Tracts$NAME == 61.03, ]
+                 shape.Tracts$NAME == 61.03,]
 
 
 nhoodIcon <- makeIcon(
@@ -406,9 +406,9 @@ nhoodIcon <- makeIcon(
 
 #Asset Density Sorting
 Dat.AssetDensity <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength), ]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
 Dat.AssetDensity2 <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel), ]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
 Dat.DensityLength <- Dat.AssetDensity[, c(1, 3, 7, 4)]
 colnames(Dat.DensityLength) <-
   c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
@@ -461,7 +461,7 @@ TransitCounts <- TransitCounts[, c(1:6, 9, 18, 23:24, 26:29)]
 TransitCounts$CensusTract1 <-
   as.character(TransitCounts$CensusTract1)
 #Sort Transit Data
-TransitCounts <- TransitCounts[order(TransitCounts$TransitCount), ]
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
 TransitCounts$CT <-
   factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
@@ -497,16 +497,16 @@ Dat.DistTime <-
 
 Dat.Tract_Dist2 <- Dat.Tract_Dist[, c(2, 8:10)]
 Dat.Tract_Dist2 <-
-  Dat.Tract_Dist2[order(Dat.Tract_Dist2$TimeOverDist, decreasing = TRUE), ]
+  Dat.Tract_Dist2[order(Dat.Tract_Dist2$TimeOverDist, decreasing = TRUE),]
 
 #Cleaning data for Dat.Violations
 Dat.Violations$Violation.Date <-
   as.Date(Dat.Violations$Violation.Date, "%m/%d/%Y")
 
 complaint.date <- Dat.Violations$Violation.Date
-#post.2012 <- complaint.date > "2011-12-31"
-#Dat.Violations <- Dat.Violations[post.2012 , ]
-#complaint.date <- Dat.Violations$Violation.Date
+post.2012 <- complaint.date > "2011-12-31"
+Dat.Violations <- Dat.Violations[post.2012 ,]
+complaint.date <- Dat.Violations$Violation.Date
 
 month.year <- cut(complaint.date, breaks = "month")
 # this creates a factor for month-year
@@ -534,7 +534,7 @@ Dat.CleanedViolations1 <-
         by.x = "Violation.Description",
         by.y = "Violation.Description")
 Dat.CleanedViolations2 <-
-  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99, ]
+  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99,]
 Dat.CleanedViolations2$Count <- 1
 dat.VHM1 <-
   as.data.frame(
@@ -548,6 +548,12 @@ dat.VHM1 <-
 row.names(dat.VHM1) <- dat.VHM1$Violation.Description
 
 dat.VHM2 <- dat.VHM1[, c(2:ncol(dat.VHM1))]
+
+#Cleaning for complaint status stacked bar graphic
+Dat.Violations$Year <-
+  as.numeric(format(Dat.Violations$Violation.Date, '%Y'))
+Dat.Violations$Count <- 1
+
 # ui.R definition
 ui <- fluidPage(# Set theme
   theme = shinytheme("united"),
@@ -1062,19 +1068,24 @@ ui <- fluidPage(# Set theme
                
                #########COMPLAINTS V VIOLATION DATA UI##################
                tabPanel(
-                 "Complaint vs. Violation Data",
-                 h4("See the shift and growth of complaints overtime"),
+                 "Bottlenecks",
+                 h4(
+                   "How well does the current DOCE function? Are there bottlenecks in the process?"
+                 ),
                  fixedRow(column(
                    3,
-                   checkboxGroupInput(
+                   selectInput(
                      inputId = "ComplaintStatusSelect",
                      label = h4("Complaint Status:"),
                      choices = featureList9,
                      selected = "Referred to Law"
                    )
+                 )),
+                 fixedRow(column(
+                   6, dygraphOutput("ComplaintGraph1", height = "500px")
                  ),
                  column(
-                   9, dygraphOutput("ComplaintGraph1", height = "700px")
+                   6, plotlyOutput("ComplaintGraph2", height = "500px")
                  )),
                  fixedRow(column(
                    12,
@@ -1365,7 +1376,7 @@ server <- function(input, output, session) {
       
       output$AssetMap1 <- renderLeaflet({
         NonResSubset <-
-          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1, ]
+          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
         
         leaflet(shape.asset) %>%
           setView(lng = -76.1474,
@@ -1489,7 +1500,7 @@ server <- function(input, output, session) {
       })
       
       output$CCVarietyPlot <- renderPlotly({
-        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor, ]
+        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
         CCSubset$GeneralCategories <-
           as.character(CCSubset$GeneralCategories)
         CCSubset$Count <- 1
@@ -1525,13 +1536,13 @@ server <- function(input, output, session) {
       #########RESIDENTIAL PROJECTS SERVER####
       output$AccessMap1 <- renderLeaflet({
         accessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible, ]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
         InaccessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible, ]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
         ProblemSubset <-
-          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem,]
+          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
         Investment <-
-          Dat.Investment[Dat.Investment$Activity == input$Investment,]
+          Dat.Investment[Dat.Investment$Activity == input$Investment, ]
         
         leaflet(shape.access) %>%
           setView(lng = -76.1474,
@@ -1895,7 +1906,7 @@ server <- function(input, output, session) {
       
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
-          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect ,]
+          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
         
         # Dropping months with zero complaints
         ncomps <- 0
@@ -1912,13 +1923,55 @@ server <- function(input, output, session) {
         
       })
       
+      output$ComplaintGraph2 <- renderPlotly({
+        Dat.Violations$Complaint.Status <-
+          as.factor(Dat.Violations$Complaint.Status)
+        Dat.Violations$Year <- as.factor(Dat.Violations$Year)
+        
+        compstatgraph <-
+          ggplot(data = Dat.Violations, aes(x = Year, fill = Complaint.Status)) +
+          geom_bar() +
+          theme(legend.position = 'none') +
+          scale_fill_manual(
+            values = c(
+              "aquamarine4",
+              "azure2",
+              "aquamarine",
+              "azure",
+              "cyan3",
+              "darkseagreen",
+              "aquamarine3",
+              "azure1",
+              "aquamarine1",
+              "antiquewhite",
+              "cyan2",
+              "darkseagreen1",
+              "aquamarine2",
+              "azure2",
+              "aquamarine1",
+              "azure3",
+              "cyan1",
+              "darkseagreen2",
+              "aquamarine1",
+              "azure4",
+              "aquamarine1",
+              "antiquewhite2",
+              "cyan4",
+              "darkseagreen3"
+            )
+          ) +
+          theme(panel.background = element_blank()) +
+          labs(list(title = "Breakdown of Case Statuses by Year", x = "Year Case Opened", y = " "))
+        
+        ggplotly(compstatgraph)
+      })
       
       output$violationHeatmap <- renderD3heatmap({
         dat.VHM3 <-
-          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE),]
         d3heatmap(
           dat.VHM3,
-          colors = "Blues",
+          colors = "BuGn",
           scale = "column",
           dendrogram = "none"
         )
