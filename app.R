@@ -1809,6 +1809,112 @@ server <- function(input, output, session) {
       output$TransportTable1 <- renderTable({
         head(Dat.Tract_Dist2, n = input$TransportObs1)
       })
+      
+      #########DOCE SERVER####
+      output$CodeViolationPic <- renderImage({
+        if (input$CodeViolationSelect == "Life of a Code Violation") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Life of a Code Violation.png",
+              contentType = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        } else if (input$CodeViolationSelect == "Code Violation Heat Map") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Code Violation Heat Map.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CodeViolationSelect == "Neighborhood Compliance Rate") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Neighborhood Compliance Rate.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CodeViolationSelect == "Demolition Strategy") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Demolition Strategy.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CodeViolationSelect == "Demolition Candidates") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Demolition Candidates.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CodeViolationSelect == "Housing Vulnerable Case Load") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Housing Vulnerable Task Force Case Load.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CodeViolationSelect == "Bed Bug Breakdown") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Bed Bug PNG.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CodeViolationSelect == "Legal Streamline Weighting System") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Legal Streamline Weighting System.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+      }, deleteFile = FALSE)
+      
+      #########COMPLAINTS V VIOLATION DATA SERVER##################
+      output$ComplaintGraph1 <- renderDygraph({
+        dat.sub <-
+          Dat.Violations[Dat.Violations$Complaint.Type %in% input$ComplaintSelect ,]
+        
+        # Dropping months with zero complaints
+        ncomps <- 0
+        comp.checks <- as.data.frame(input$ComplaintSelect)
+        ncomps <- length(input$comp.checks)
+        
+        # Create chart for a subset of data
+        complaint.sub <-
+          tapply(dat.sub$Complaint.Type, dat.sub$month.year, length)
+        complaint.sub[is.na(complaint.sub)] <- 0
+        
+        dygraph(complaint.sub) %>%
+          dyRangeSelector()
+        
+      })
+      
+      output$violationHeatmap <- renderD3heatmap({
+        dat.VHM3 <-
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
+        d3heatmap(
+          dat.VHM3,
+          colors = "Blues",
+          scale = "column",
+          dendrogram = "none"
+        )
+      })
     }
   )
 }
