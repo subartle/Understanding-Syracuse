@@ -107,8 +107,8 @@ Dat.AssetPercent[, c(2:28, 31:34)] <-
   round(100 * Dat.AssetPercent[, c(2:28, 31:34)], 2)
 
 #Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55),]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
+Dat.AssetCount <- Dat.AssetCount[c(1:55), ]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55), ]
 
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
@@ -393,7 +393,7 @@ shape.Syracuse <-
                  shape.Tracts$NAME == 60 |
                  shape.Tracts$NAME == 61.01 |
                  shape.Tracts$NAME == 61.02 |
-                 shape.Tracts$NAME == 61.03,]
+                 shape.Tracts$NAME == 61.03, ]
 
 
 nhoodIcon <- makeIcon(
@@ -406,9 +406,9 @@ nhoodIcon <- makeIcon(
 
 #Asset Density Sorting
 Dat.AssetDensity <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength), ]
 Dat.AssetDensity2 <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel), ]
 Dat.DensityLength <- Dat.AssetDensity[, c(1, 3, 7, 4)]
 colnames(Dat.DensityLength) <-
   c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
@@ -461,7 +461,7 @@ TransitCounts <- TransitCounts[, c(1:6, 9, 18, 23:24, 26:29)]
 TransitCounts$CensusTract1 <-
   as.character(TransitCounts$CensusTract1)
 #Sort Transit Data
-TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount), ]
 TransitCounts$CT <-
   factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
@@ -497,7 +497,7 @@ Dat.DistTime <-
 
 Dat.Tract_Dist2 <- Dat.Tract_Dist[, c(2, 8:10)]
 Dat.Tract_Dist2 <-
-  Dat.Tract_Dist2[order(Dat.Tract_Dist2$TimeOverDist, decreasing = TRUE),]
+  Dat.Tract_Dist2[order(Dat.Tract_Dist2$TimeOverDist, decreasing = TRUE), ]
 
 #Cleaning data for Dat.Violations
 Dat.Violations$Violation.Date <-
@@ -505,7 +505,7 @@ Dat.Violations$Violation.Date <-
 
 complaint.date <- Dat.Violations$Violation.Date
 post.2012 <- complaint.date > "2011-12-31"
-Dat.Violations <- Dat.Violations[post.2012 ,]
+Dat.Violations <- Dat.Violations[post.2012 , ]
 complaint.date <- Dat.Violations$Violation.Date
 
 month.year <- cut(complaint.date, breaks = "month")
@@ -534,7 +534,7 @@ Dat.CleanedViolations1 <-
         by.x = "Violation.Description",
         by.y = "Violation.Description")
 Dat.CleanedViolations2 <-
-  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99,]
+  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99, ]
 Dat.CleanedViolations2$Count <- 1
 dat.VHM1 <-
   as.data.frame(
@@ -1066,7 +1066,7 @@ ui <- fluidPage(# Set theme
                  fixedRow(column(12, imageOutput("CodeViolationPic")))
                  ),
                
-               #########COMPLAINTS V VIOLATION DATA UI##################
+               #########BOTTLENECKS UI##################
                tabPanel(
                  "Bottlenecks",
                  h4(
@@ -1099,9 +1099,41 @@ ui <- fluidPage(# Set theme
                  fixedRow(column(
                    12, d3heatmapOutput("violationHeatmap", height = "1000px")
                  ))
-               )
+               ),
+               ##########COMPLIANCE UI#################
+               tabPanel(
+                 "Compliance",
+                 h4(
+                   "In several interviews, 'compliance' has been listed as the DOCE's ultimate goal. Is compliance happening? If not,
+                   are there any trends surrounding compliant and noncompliant homeowners and properties?"
+                 ),
+                 fixedRow(
+                   column(
+                     3,
+                     h5(
+                       "Michelle Sczpanski has headed an analysis of the current compliance rates throughout Syracuse (see right).
+                       Her attached maps have drawn some interesting observations!"
+                     ),
+                     selectInput(
+                       inputId = "CompliancePicSelect",
+                       label = "Select a map",
+                       choices = c(
+                         "Complaints Open for 30 Days+",
+                         "Complaint-Parcel Ratio",
+                         "Complaints Referred to Law",
+                         "Missing and Expired Rental Registry"
+                       )
+                     ),
+                     h5("Observations:"),
+                     h5("(1) "),
+                     h5("(2) "),
+                     h5("(3) ")
+                     ),
+                   column(9, imageOutput("CompliancePic"))
+                 )
+                 )
                  ))
-               )))
+    )))
 
 # server.R definition
 server <- function(input, output, session) {
@@ -1376,7 +1408,7 @@ server <- function(input, output, session) {
       
       output$AssetMap1 <- renderLeaflet({
         NonResSubset <-
-          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
+          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1, ]
         
         leaflet(shape.asset) %>%
           setView(lng = -76.1474,
@@ -1500,7 +1532,7 @@ server <- function(input, output, session) {
       })
       
       output$CCVarietyPlot <- renderPlotly({
-        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
+        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor, ]
         CCSubset$GeneralCategories <-
           as.character(CCSubset$GeneralCategories)
         CCSubset$Count <- 1
@@ -1536,13 +1568,13 @@ server <- function(input, output, session) {
       #########RESIDENTIAL PROJECTS SERVER####
       output$AccessMap1 <- renderLeaflet({
         accessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible, ]
         InaccessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible, ]
         ProblemSubset <-
-          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
+          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem,]
         Investment <-
-          Dat.Investment[Dat.Investment$Activity == input$Investment, ]
+          Dat.Investment[Dat.Investment$Activity == input$Investment,]
         
         leaflet(shape.access) %>%
           setView(lng = -76.1474,
@@ -1884,7 +1916,7 @@ server <- function(input, output, session) {
         }
       }, deleteFile = FALSE)
       
-      #########COMPLAINTS V VIOLATION DATA SERVER##################
+      #########BOTTLENECKS SERVER##################
       #output$ComplaintGraph1 <- renderDygraph({
       # dat.sub <-
       #  Dat.Violations[Dat.Violations$Complaint.Type %in% input$ComplaintSelect , ]
@@ -1906,7 +1938,7 @@ server <- function(input, output, session) {
       
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
-          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
+          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect ,]
         
         # Dropping months with zero complaints
         ncomps <- 0
@@ -1968,7 +2000,7 @@ server <- function(input, output, session) {
       
       output$violationHeatmap <- renderD3heatmap({
         dat.VHM3 <-
-          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE),]
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
         d3heatmap(
           dat.VHM3,
           colors = "BuGn",
@@ -1976,6 +2008,50 @@ server <- function(input, output, session) {
           dendrogram = "none"
         )
       })
+      
+      
+      ##############COMPLIANCE SERVER############
+      output$CompliancePic <- renderImage({
+        if (input$CompliancePicSelect == "Complaints Open for 30 Days+") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Complaints Open for 30 Days Plus.png",
+              contentType = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        } else if (input$CompliancePicSelect == "Complaint-Parcel Ratio") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Complaint Parcel Ratio.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CompliancePicSelect == "Complaints Referred to Law") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Complaints Referred to Law.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+        else if (input$CompliancePicSelect == "Missing and Expired Rental Registry") {
+          return(
+            list(
+              src = "Understanding-Syracuse/Images/Missing and Expired Rental Registry.png",
+              filetype = "image/png",
+              alt = "Drats! Something went wrong D:"
+            )
+          )
+        }
+      }, deleteFile = FALSE)
+      
+      
+      
+      
     }
   )
 }
