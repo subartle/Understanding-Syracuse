@@ -82,6 +82,11 @@ Dat.CleanedViolations <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/ViolationReportArcs.csv"
   )
+
+DAT.ZillowAug <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/dat.Zillow.csv"
+  )
 #API Key for transportation time and distance
 APIkey <- ('AIzaSyCoHparOPrgG4hU6QFUR4yEOkkfj53IcZ0')
 
@@ -326,13 +331,9 @@ featureList8 <-
     "Population (16 Plus)",
     "Median Income (in dollars)"
   )
-featureList9 <-
-  paste(unique(Dat.Violations$Complaint.Status))
-featureList10 <-
-  paste(unique(Dat.CleanedViolations$Complaint.Status))
 
-CensusTractC <- Dat.AssetCount$Row.Labels
-CensusTractP <- Dat.AssetPercent$Row.Labels
+#CensusTractC <- Dat.AssetCount$Row.Labels
+#CensusTractP <- Dat.AssetPercent$Row.Labels
 
 # SHAPEFILE - CENSUS INFORMATION
 #Download Onondaga County Tracts, Onondaga County = 67
@@ -517,6 +518,75 @@ month.year.name <- format(complaint.date, "%b-%Y")
 # table( dat$Complaint.Type, month.year )
 Dat.Violations$month.year <- month.year
 
+#Cleaning for complaint status stacked bar graphic
+Dat.Violations$Year <-
+  as.numeric(format(Dat.Violations$Violation.Date, '%Y'))
+Dat.Violations$Count <- 1
+
+Dat.Violations$Complaint.Status <-
+  as.character(Dat.Violations$Complaint.Status)
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Violations"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Issued"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Expired"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Denied - OpenViolations"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Not Active"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Ready to Issue"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Needs Site Inspection"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Denied"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Needs Insp - Violations"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Needs Renewal"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x Suspended"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x In Review - Violations"] <-
+  "Certificate of Use"
+Dat.Violations$Complaint.Status[Dat.Violations$Complaint.Status == "x In Review"] <-
+  "Certificate of Use"
+
+Dat.CleanedViolations$Complaint.Status <-
+  as.character(Dat.CleanedViolations$Complaint.Status)
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Violations"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Issued"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Expired"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Denied - OpenViolations"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Not Active"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Ready to Issue"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Needs Site Inspection"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Denied"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Needs Insp - Violations"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Needs Renewal"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x Suspended"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x In Review - Violations"] <-
+  "Certificate of Use"
+Dat.CleanedViolations$Complaint.Status[Dat.CleanedViolations$Complaint.Status == "x In Review"] <-
+  "Certificate of Use"
+
+featureList9 <-
+  paste(unique(Dat.Violations$Complaint.Status))
+
+featureList10 <-
+  paste(unique(Dat.CleanedViolations$Complaint.Status))
+
 #Heat Map Data Clean
 dat.VHM <-
   as.data.frame(
@@ -549,10 +619,77 @@ row.names(dat.VHM1) <- dat.VHM1$Violation.Description
 
 dat.VHM2 <- dat.VHM1[, c(2:ncol(dat.VHM1))]
 
-#Cleaning for complaint status stacked bar graphic
-Dat.Violations$Year <-
-  as.numeric(format(Dat.Violations$Violation.Date, '%Y'))
-Dat.Violations$Count <- 1
+#Zillow Data Clean
+DAT.ZillowAug[DAT.ZillowAug == 0] <- NA
+
+year <- c(1996:2016)
+
+
+#I don't know why I did this
+Washington.Square <- as.data.frame(DAT.ZillowAug$Washington.Square)
+Eastwood <- as.data.frame(DAT.ZillowAug$Eastwood)
+Brighton <- as.data.frame(DAT.ZillowAug$Brighton)
+Near.Northeast <- as.data.frame(DAT.ZillowAug$Near.Northeast)
+Northside <- as.data.frame(DAT.ZillowAug$Northside)
+Strathmore <- as.data.frame(DAT.ZillowAug$Strathmore)
+Far.West.Side <- as.data.frame(DAT.ZillowAug$Far.WestSide)
+North.Valley <- as.data.frame(DAT.ZillowAug$North.Valley)
+South.Valley <- as.data.frame(DAT.ZillowAug$South.Valley)
+Meadowbrook <- as.data.frame(DAT.ZillowAug$Meadowbrook)
+University <- as.data.frame(DAT.ZillowAug$University)
+Outer.Comstock <- as.data.frame(DAT.ZillowAug$Outer.Comstock)
+Salt.Springs <- as.data.frame(DAT.ZillowAug$Salt.Springs)
+Westcott <- as.data.frame(DAT.ZillowAug$Wescott)
+Sedgwick <- as.data.frame(DAT.ZillowAug$Sedgwick)
+Elmwood <- as.data.frame(DAT.ZillowAug$Elmwood)
+
+#I don't know why I did this
+COLL <-
+  data.frame(
+    year,
+    Washington.Square,
+    Eastwood,
+    Brighton,
+    Near.Northeast,
+    Northside,
+    Strathmore,
+    Far.West.Side,
+    North.Valley,
+    South.Valley,
+    Meadowbrook,
+    University,
+    Outer.Comstock,
+    Salt.Springs,
+    Westcott,
+    Sedgwick,
+    Elmwood
+  )
+
+colnames(COLL) <-
+  c(
+    "year",
+    "Washington.Square",
+    "Eastwood",
+    "Brighton",
+    "Near.Northeast",
+    "Northside",
+    "Strathmore",
+    "Far.West.Side",
+    "North.Valley",
+    "South.Valley",
+    "Meadowbrook",
+    "University",
+    "Outer.Comstock",
+    "Salt.Springs",
+    "Westcott",
+    "Sedgwick",
+    "Elmwood"
+  )
+
+COLL$year <- as.character(as.factor(COLL$year))
+
+COLL$Washington.Square <- as.numeric(COLL$Washington.Square)
+
 
 # ui.R definition
 ui <- fluidPage(# Set theme
@@ -865,7 +1002,7 @@ ui <- fluidPage(# Set theme
         tabPanel(
           "Residential Projects",
           h4(
-            "Question: What has been the City’s place-based approach? Where has money been invested and in what way?"
+            "Question: What has been the City's place-based approach? Where has money been invested and in what way?"
           ),
           h4(
             "Observations: Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"
@@ -878,8 +1015,9 @@ ui <- fluidPage(# Set theme
               choices = featureList3
             )
           )),
+          fixedRow(plotlyOutput("ZillowLongPlot", height = "500px")),
           fixedRow(column(
-            8, plotlyOutput("PlotInvested", height = "400px")
+            12, plotlyOutput("PlotInvested", height = "500px")
           )),
           tags$ol(
             "HOW TO:",
@@ -1125,23 +1263,30 @@ ui <- fluidPage(# Set theme
                        )
                      ),
                      h5("Observations:"),
-                     h5("(1) Each of the maps to the right show geographic concentrations of particular challenges throughout the city.
-                        As discussed in the 'Place-Based Approach' tab, most challenges follow an almost identical geographic pattern - 
-                        areas directly adjacent to downtown (Southwest, Near Westside and Northside) harbor the greatest concentration of
-                        any particular challenge (poverty rates, crime, unemployment, etc.). We see this trend continued with the 
-                        'Complaint-Parcel Ratio' map. However, the other maps each show unique trends. Each challenge still seems to 
-                        concentrate itself geographically, but the neighborhoods vary."),
-                     h5("(2) 'Complaint-Parcel Ratio' map and 'Complaints Open for 30 Days+' map show almost opposite geographic areas.
-                        This suggests that properties in neighborhoods such as the Northside may get a lot of code violations but they
-                        resolve them within an acceptable timeframe."),
-                     h5("(3) It was rather shocking to me that the areas with the highest percent of missing or expired rental registries
-                        were in the same census tracts where we've put federal dollars toward rental rehabilitation (see the 'Residential' 
-                        mini-tab under the 'Place-Based Approach' tab).")),
+                     h5(
+                       "(1) Each of the maps to the right show geographic concentrations of particular challenges throughout the city.
+                       As discussed in the 'Place-Based Approach' tab, most challenges follow an almost identical geographic pattern -
+                       areas directly adjacent to downtown (Southwest, Near Westside and Northside) harbor the greatest concentration of
+                       any particular challenge (poverty rates, crime, unemployment, etc.). We see this trend continued with the
+                       'Complaint-Parcel Ratio' map. However, the other maps each show unique trends. Each challenge still seems to
+                       concentrate itself geographically, but the neighborhoods vary."
+                     ),
+                     h5(
+                       "(2) 'Complaint-Parcel Ratio' map and 'Complaints Open for 30 Days+' map show almost opposite geographic areas.
+                       This suggests that properties in neighborhoods such as the Northside may get a lot of code violations but they
+                       resolve them within an acceptable timeframe."
+                     ),
+                     h5(
+                       "(3) It was rather shocking to me that the areas with the highest percent of missing or expired rental registries
+                       were in the same census tracts where we've put federal dollars toward rental rehabilitation (see the 'Residential'
+                       mini-tab under the 'Place-Based Approach' tab)."
+                     )
+                     ),
                    column(9, imageOutput("CompliancePic"))
-                 )
-                 )
-                 ))
-    )))
+                     )
+                   )
+               ))
+                 )))
 
 # server.R definition
 server <- function(input, output, session) {
@@ -1671,7 +1816,107 @@ server <- function(input, output, session) {
             mode = "markers",
             source = "subset",
             marker = list(size = 12)
-          )
+          ) %>%
+            layout(
+              title = "HOME and CDBG Dollars by Census Tract (2009-16)",
+              xaxis = list(title = "# of Projects"),
+              yaxis = list (title = "Total Dollars")
+            )
+        })
+        
+        output$ZillowLongPlot <- renderPlotly({
+          plot_ly(
+            COLL,
+            x = COLL$year,
+            y = COLL$Washington.Square,
+            name = 'Washington Square',
+            type = 'scatter',
+            mode = 'lines',
+            line = list(color = 'blueviolet', width = 2)
+          ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Eastwood,
+              name = 'Eastwood',
+              line = list(color = 'mediumorchid', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Brighton,
+              name = 'Brighton',
+              line = list(color = 'darkmagenta', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Near.Northeast,
+              name = 'Near Northeast',
+              line = list(color = 'mediumpurple', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Northside,
+              name = 'Northside',
+              line = list(color = 'darkorchid', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Strathmore,
+              name = 'Strathmore',
+              line = list(color = 'mediumorchid', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Far.West.Side,
+              name = 'Far west Side',
+              line = list(color = 'darkviolet', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Meadowbrook,
+              name = 'Meadowbrook',
+              line = list(color = 'orchid', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$University,
+              name = 'University',
+              line = list(color = 'lavender', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Outer.Comstock,
+              name = 'Outer.Comstock',
+              line = list(color = 'purple', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Salt.Springs,
+              name = 'Salt Springs',
+              line = list(color = 'maroon', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Westcott,
+              name = 'Westcott',
+              line = list(color = 'plum', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Sedgwick,
+              name = 'Sedgwick',
+              line = list(color = 'darkmagenta', width = 2)
+            ) %>%
+            add_trace(
+              x = COLL$year,
+              y = COLL$Elmwood,
+              name = 'Elmwood',
+              line = list(color = 'thistle', width = 2)
+            ) %>%
+            layout(
+              title = "Syracuse Zillow Home Values (2006-2016)",
+              xaxis = list(title = "Years"),
+              yaxis = list (title = "Home Value")
+            )
         })
         
         output$investClick <- renderPrint({
@@ -1925,25 +2170,6 @@ server <- function(input, output, session) {
       }, deleteFile = FALSE)
       
       #########BOTTLENECKS SERVER##################
-      #output$ComplaintGraph1 <- renderDygraph({
-      # dat.sub <-
-      #  Dat.Violations[Dat.Violations$Complaint.Type %in% input$ComplaintSelect , ]
-      
-      # Dropping months with zero complaints
-      #  ncomps <- 0
-      # comp.checks <- as.data.frame(input$ComplaintSelect)
-      #ncomps <- length(input$comp.checks)
-      
-      # Create chart for a subset of data
-      # complaint.sub <-
-      #    tapply(dat.sub$Complaint.Type, dat.sub$month.year, length)
-      #  complaint.sub[is.na(complaint.sub)] <- 0
-      
-      # dygraph(complaint.sub) %>%
-      #  dyRangeSelector()
-      
-      #  })
-      
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
           Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
@@ -1983,21 +2209,9 @@ server <- function(input, output, session) {
               "aquamarine3",
               "azure1",
               "aquamarine1",
-              "antiquewhite",
-              "cyan2",
-              "darkseagreen1",
               "aquamarine2",
-              "azure2",
-              "aquamarine1",
-              "azure3",
-              "cyan1",
-              "darkseagreen2",
-              "aquamarine1",
-              "azure4",
-              "aquamarine1",
-              "antiquewhite2",
-              "cyan4",
-              "darkseagreen3"
+              "cyan2",
+              "darkseagreen1"
             )
           ) +
           theme(panel.background = element_blank()) +
