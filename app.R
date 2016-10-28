@@ -989,10 +989,12 @@ ui <- fluidPage(# Set theme
           fixedRow(
             column(
               3,
-              h4("Driscoll's Corridor Breakdowns:"),
+              h4("Corridor Breakdowns:"),
               h5(
-                "What makes a commercial corridor an asset to a community? Start by looking at the breakdown of each commercial corridor.
-                What is the diversity of Use?"
+                "My thought with the below graphics was that in order to understand what makes a commercial corridor an asset to a
+                community, we need to know what makes a commerical corridor... That is to say - what are the land uses within each
+                corridor? What is the diversity of uses? What is the density of the corridor? Are there trends across corridors?
+                Which corridors are 'successful' and are its characteristics?"
               ),
               selectInput(
                 inputId = "CCorridor",
@@ -1039,7 +1041,7 @@ ui <- fluidPage(# Set theme
               tableOutput("CCParcelRatio")
             )
           )
-          ),
+              ),
         
         ##########DIS/INVESTMENT UI#############
         tabPanel(
@@ -1144,7 +1146,7 @@ ui <- fluidPage(# Set theme
           ))
             )
             )
-        ),
+          ),
     
     
     ##############COMMUNITY CONNECTION UI##############
@@ -1189,10 +1191,41 @@ ui <- fluidPage(# Set theme
                ################PUBLIC TRANSPORTATION UI##############
                tabPanel(
                  "Public Transportation",
+                 h4("Question:"),
+                 h5(
+                   "In countless interviews, the issue of transporation has come up. Is Syracuse's public transportation a barrier
+                   between people and economic opportunity?"
+                 ),
                  fixedRow(column(
-                   12, leafletOutput("TransportationMap1", height = "700px")
-                 )),
-                 tags$hr(),
+                   3,
+                   h4("Description:"),
+                   h5(HTML(
+                     paste(
+                       "Each ",
+                       tags$span(style = "color:green", "green "),
+                       "dot in the map to the left shows a Centro
+                       bus transit stop within Onondaga County. The data was downloaded from 'The National Transit Map'.
+                       Scroll in and out to see the entire County.",
+                       sep = ""
+                     )
+                   )),
+                   h4("Observations:"),
+                   h5(
+                     "At a glance, these data show an dense system of Centro stops throughout Syracuse (the County seems more sparse).
+                     The map directly below colors each census tract by the # of transit stops within it. There is a large range but this
+                     is most likely impacted by size (i.e. Census tract 46 / Meadowbrook has the highest # of transit stops but is also one
+                     of the largest census tracts in the city and census tract 3 only has 10 transit stops but covers a very small area)."
+                   ),
+                   h5(
+                     "Although the maps and graphic to the right and below show an extensive physical coverage of Centro transit stops
+                     throughout the city, that does not necessarily mean that the public transit system is efficient. The real
+                     questions that we need answers to are: How long does it take to get from one point to the next? How much does this
+                     differ from having a car?"
+                   )
+                   ),
+                   column(
+                     9, leafletOutput("TransportationMap1", height = "500px")
+                   )),
                  fixedRow(column(
                    4,
                    selectInput(
@@ -1202,27 +1235,34 @@ ui <- fluidPage(# Set theme
                    )
                  )),
                  fixedRow(column(
-                   6, plotlyOutput("TransportationGraph1", height = "700px")
+                   6,
+                   h4(tags$b("# of Transit Stops by Census Tract")),
+                   leafletOutput("TransportationMap2", height = "700px")
                  ),
                  column(
-                   6, leafletOutput("TransportationMap2", height = "700px")
+                   6, plotlyOutput("TransportationGraph1", height = "700px")
                  )),
                  tags$hr(),
                  fixedRow(
                    column(8, leafletOutput("TransportationMap3", height = "700px")),
                    column(
                      4,
-                     h6(
+                     h5(
                        "The map to the left looks at the minutes it takes to get from the center of each census tract to a specific location (i.e. downtown) using public transportation divided
                        by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
                        to no range and a small standard deviation."
                      ),
-                     numericInput("TransportObs1", "# of rows:", 16),
+                     h5(
+                       "Note: Comparing time spend on public transit vs time spent in a car is not a perfect measure of public transit
+                       efficiency However, based on the data available (Google maps), it is a pretty good description of the additional
+                       time needed in a day for transportation for someone who does not own a car."
+                     ),
+                     numericInput("TransportObs1", "# of rows:", 12),
                      tableOutput("TransportTable1")
                      )
+                     )
                    )
-               )
-                   )),
+               )),
     
     ##############DOCE UI############
     tabPanel(h4("DOCE"),
