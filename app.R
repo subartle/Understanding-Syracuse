@@ -884,11 +884,19 @@ ui <- fluidPage(# Set theme
         ###########PHYSICAL ASSETS UI#########
         tabPanel(
           "Physical Assets",
-          h4(
-            "Question: Is there a relationship between certain types of property based community assets and neighborhood health?"
+          h4("Question:"),
+          h5(
+            "Is there a relationship between certain types of property based community assets and neighborhood health?"
           ),
+          h4("Observations:"),
+          h5(
+            "Census tracts with a low unemployment rate also have a higher total # of households and a lower percentage of households with no vehicle. Furthermore, there is a positive relationship between these census tracts and residential assets and a negative relationship between these census tracts and all other, non-residential assets."
+          ),
+          h5(
+            "The below plots do NOT represent a causal relationship. However, they bring doubt to the hypothesis that census tracts with a higher # or % of non-residential services are more likely to have higher economic opportunity."
+          ),
+          h4("HOW TO:"),
           tags$ol(
-            "HOW TO:",
             h5(
               "Step 1: The drop down labeled 'Neighborhood Asset' includes data from the SPAD database (see Tab Overview for more information). For example if 'Banks and Lending' is selected, the plots below will group the total # of banks and lending institutions by census tract and the map will populate with a dot for every property that has a bank and lending institution within it."
             ),
@@ -901,12 +909,6 @@ ui <- fluidPage(# Set theme
             h5(
               "Step 4: Hover over the map's asset points for more detailed informaiton"
             )
-          ),
-          h4(
-            "Observations: Census tracts with a low unemployment rate also have a higher total # of households and a lower percentage of households with no vehicle. Furthermore, there is a positive relationship between these census tracts and residential assets and a negative relationship between these census tracts and all other, non-residential assets."
-          ),
-          h4(
-            "Conclusions: The below plots do NOT represent a causal relationship. However, they bring doubt to the hypothesis that census tracts with a higher # or % of non-residential services are more likely to have higher economic opportunity."
           ),
           
           # Vertical space
@@ -941,36 +943,80 @@ ui <- fluidPage(# Set theme
               plotlyOutput("Plot2", height = "400px")
             ),
             column(6, leafletOutput("AssetMap1", height = "800px"))
-          ),
-          tags$hr(),
-          h5(
-            "This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights."
           )
         ),
         
         ##############COMMERCIAL CORRIDORS UI############
         tabPanel(
           "Commercial Corridors",
-          h4(
-            "What is the breakdown of each commercial corridor? What is the diversity of Use?"
+          h4("Question:"),
+          h5(
+            "As you can see from the Physical Assets tab, non-residential assets are concentration downtown and spattered around the city.
+            Is there value to concentrating investment and planning efforts in commercial corridors? Does this organization of a corridor
+            result in healthier surrounding neighborhoods?"
           ),
-          fixedRow(column(
-            12, leafletOutput("CCAssetMap", height = "500px")
-          )),
-          fixedRow(column(
-            4,
-            selectInput(
-              inputId = "CCorridor",
-              label = "Commercial Corridor",
-              choices = featureList7
-            )
-          )),
-          fixedRow(column(
-            12, plotlyOutput("CCVarietyPlot", height = "500px")
-          )),
-          h4(
-            "What is the density of each commercial corridor? Does the density of a corridor play a part in the health of a commercial corridor and its surrounding neighborhoods?"
-          ),
+          fixedRow(
+            column(
+              3,
+              h4("Identifying Existing Corridors:"),
+              h5(
+                "The dots identified in the map to the right represent the assets included in commercial corridors drawn by Commissioner
+                Paul Driscoll. According to this map, there are 17 commercial corridors throughout Syracuse."
+              ),
+              h4("HOW TO:"),
+              h5(
+                div("Dots in green represent commercial and public assets ", style = "color:green")
+              ),
+              h5(
+                div("Dots in orange represent residential assets", style = "color:orange")
+              ),
+              h5("Dots in white represent vacant assets"),
+              h5(
+                div("Dots in yellow represent mixed-use assets", style = "color:gold")
+              ),
+              h5(tags$b(
+                "Click on dots to identify their corridor's name."
+              )),
+              h4("Observations:"),
+              h5(
+                "Almost immediately, the team questioned whether the boundaries were accepted across the community. Are there other set
+                boundaries that may be more widely accepted? The City's Future Land Use Map may be a good place to look into? It could also
+                be that many of our corridors lack a strong enough identity to be clearly defined or understood by the community?"
+              )
+              ),
+            column(9, leafletOutput("CCAssetMap", height = "500px"))
+              ),
+          fixedRow(
+            column(
+              3,
+              h4("Driscoll's Corridor Breakdowns:"),
+              h5(
+                "What makes a commercial corridor an asset to a community? Start by looking at the breakdown of each commercial corridor.
+                What is the diversity of Use?"
+              ),
+              selectInput(
+                inputId = "CCorridor",
+                label = "Select a Corridor to see its breakdown",
+                choices = featureList7
+              ),
+              h4("Observations:"),
+              h5(
+                "As to be expected, neighborhoods that struggle with high poverty rates and low employment also have higher rates of vacancy
+                in their adjacent corridors."
+              ),
+              h5(
+                "Additionally, corridors with a high proportion of residential properties show lower rates of vacancy and surrounding poverty
+                when the corridor has a shorter length. Longer corridors that also have a high proportion of residential (such as Southside Salina, Wolf and Lodi),
+                also show higher rates of vacancy and surrounding poverty."
+              ),
+              h5(
+                "Finally, The analysis to the right and below does not necessarily indicate how a corridor influences its surrounding community.
+                'Erie Blvd E' has very little vacancy and is relatively dense but how has it impacted its surrounded neighborhoods. Although this
+                research was interesting and fun, unfortunately I don't think any fruitful conclusions have been drawn."
+              )
+              ),
+            column(9, plotlyOutput("CCVarietyPlot", height = "600px"))
+              ),
           fixedRow(
             column(8, plotlyOutput("CCDensityPlot", height = "500px")),
             column(
@@ -992,11 +1038,8 @@ ui <- fluidPage(# Set theme
               numericInput("DensityObs2", "# of rows:", 7),
               tableOutput("CCParcelRatio")
             )
-          ),
-          h5(
-            "This app is for planning purposes only. Please contact Susannah Bartlett at sbartlett@syrgov.net with any questions, concerns or insights."
           )
-        ),
+          ),
         
         ##########DIS/INVESTMENT UI#############
         tabPanel(
@@ -1100,220 +1143,211 @@ ui <- fluidPage(# Set theme
             12, leafletOutput("AccessMap1", height = "700px")
           ))
             )
-          )
-  ),
-  
-  
-  ##############COMMUNITY CONNECTION UI##############
-  tabPanel(h4("Community Connection"),
-           tabsetPanel(
-             tabPanel(
-               "Tab Overview",
-               h4("Problem Definition"),
-               tags$ol(tags$li(
-                 c(
-                   "Problem Definition: Throughout the interview process, service providers and constituents alike say that there
-                   is no lack of services in Syracuse, the problem lies instead with connecting people to those services.
-                   When we ask how constituents hear about available services, the answer has been almost exclusively 'word-
-                   of-mouth.' Additionally, interviewees have listed transportation to services as being problematic.
-                   An additional theme is that service providers do not 'meet people where they are at' and instead
-                   expect people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?"
-                 )
-                 ),
-                 tags$li(
+            )
+        ),
+    
+    
+    ##############COMMUNITY CONNECTION UI##############
+    tabPanel(h4("Community Connection"),
+             tabsetPanel(
+               tabPanel(
+                 "Tab Overview",
+                 h4("Problem Definition"),
+                 tags$ol(tags$li(
                    c(
-                     "Leads: Samantha Linnett and I met with Cheryl Giarrusso of Central New York's 211. They have offered to share call
-                     data and service provider data."
+                     "Problem Definition: Throughout the interview process, service providers and constituents alike say that there
+                     is no lack of services in Syracuse, the problem lies instead with connecting people to those services.
+                     When we ask how constituents hear about available services, the answer has been almost exclusively 'word-
+                     of-mouth.' Additionally, interviewees have listed transportation to services as being problematic.
+                     An additional theme is that service providers do not 'meet people where they are at' and instead
+                     expect people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?"
                    )
-                   )),
-               h4("Data Governance & Maturity"),
-               tags$ol(
-                 tags$li(
-                   "Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"
-                 ),
-                 tags$li(
-                   "Available Services: Over the duration of CNY 211's 30 years, they have tracked and logged any service provider within the
-                   5 contiguous counties. They are going to provide the full list of programs/services throughout the city of Syracuse and Onondaga
-                   County, their hours of operations, the categories of services they provide, address and the # of referrals per service."
-                 ),
-                 tags$li(
-                   "Calls: CNY 211 has offered to provide their call data at the zip code level for Syracuse: # of calls, subject of the call,
-                   time and date of the call. We are also looking into police call data and cityline call data."
-                 )
-                 ),
-               fixedRow(column(
-                 12,
-                 selectInput(
-                   inputId = "CommunityConncetionPics",
-                   label = h4("Snapshots of Previous Research"),
-                   choices = c("Public Transportation Report", "Community Centers")
-                 )
-               )),
-               fixedRow(imageOutput("CommunityConnectionPic"))
-               ),
-             
-             ################PUBLIC TRANSPORTATION UI##############
-             tabPanel(
-               "Public Transportation",
-               fixedRow(column(
-                 12, leafletOutput("TransportationMap1", height = "700px")
-               )),
-               tags$hr(),
-               fixedRow(column(
-                 4,
-                 selectInput(
-                   inputId = "TransitCensus",
-                   label = "Census Level Data",
-                   choices = featureList8
-                 )
-               )),
-               fixedRow(column(
-                 6, plotlyOutput("TransportationGraph1", height = "700px")
-               ),
-               column(
-                 6, leafletOutput("TransportationMap2", height = "700px")
-               )),
-               tags$hr(),
-               fixedRow(
-                 column(8, leafletOutput("TransportationMap3", height = "700px")),
-                 column(
-                   4,
-                   h6(
-                     "The map to the left looks at the minutes it takes to get from the center of each census tract to a specific location (i.e. downtown) using public transportation divided
-                     by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
-                     to no range and a small standard deviation."
                    ),
-                   numericInput("TransportObs1", "# of rows:", 16),
-                   tableOutput("TransportTable1")
-                   )
-                 )
-             )
-               )),
-  
-  ##############DOCE UI############
-  tabPanel(h4("DOCE"),
-           tabsetPanel(
-             tabPanel(
-               "Tab Overview",
-               h4("Problem Definition"),
-               tags$ol(tags$li(
-                 c(
-                   "Problem Definition: Several interviews have brought the teams attention to the Division
-                   of Code Enforcement (DOCE) as a tool to address poverty. Conversations with the current Director of
-                   Code Enforcement (as well as previous Directors) and other members of the Department of
-                   Neighborhood and Business Development list the DOCE as having great potential for impacting
-                   unsafe living conditions. What is this potential? What is the current capacity? What can be done
-                   to increase the capacity to meet this potential?"
-                 )
-                 ),
-                 tags$li("Leads: ")),
-               h4("Data Governance & Maturity"),
-               fixedRow(column(
-                 12,
-                 selectInput(
-                   inputId = "CodeViolationSelect",
-                   label = h4("Snapshots of Previous Research"),
-                   choices =
+                   tags$li(
                      c(
-                       "Life of a Code Violation",
-                       "Code Violation Heat Map",
-                       "Neighborhood Compliance Rate",
-                       "Demolition Strategy",
-                       "Demolition Candidates",
-                       "Housing Vulnerable Case Load",
-                       "Bed Bug Breakdown",
-                       "Legal Streamline Weighting System"
-                     ),
-                   selected = "Neighborhood Compliance Rate"
-                 )
-               )),
-               #Vertical space
-               fixedRow(column(12, imageOutput("CodeViolationPic")))
-               ),
-             
-             #########BOTTLENECKS UI##################
-             tabPanel(
-               "Bottlenecks",
-               h4(
-                 "How well does the current DOCE function? Are there bottlenecks in the process?"
-               ),
-               fixedRow(column(
-                 3,
-                 selectInput(
-                   inputId = "ComplaintStatusSelect",
-                   label = h4("Complaint Status:"),
-                   choices = featureList9,
-                   selected = "Referred to Law"
-                 )
-               )),
-               fixedRow(column(
-                 6, dygraphOutput("ComplaintGraph1", height = "500px")
-               ),
-               column(
-                 6, plotlyOutput("ComplaintGraph2", height = "500px")
-               )),
-               fixedRow(column(
-                 12,
-                 selectInput(
-                   inputId = "HeatMapSort",
-                   label = "Which case status would you like to sort by?",
-                   choices = featureList10,
-                   selected = "High Priority Review"
-                 )
-               )),
-               fixedRow(column(
-                 12, d3heatmapOutput("violationHeatmap", height = "1000px")
-               ))
-             ),
-             ##########COMPLIANCE UI#################
-             tabPanel(
-               "Compliance",
-               h4(
-                 "In several interviews, 'compliance' has been listed as the DOCE's ultimate goal. Is compliance happening? If not,
-                 are there any trends surrounding compliant and noncompliant homeowners and properties?"
-               ),
-               fixedRow(
-                 column(
-                   3,
-                   h5(
-                     "Michelle Sczpanski has headed an analysis of the current compliance rates throughout Syracuse (see right).
-                     Her attached maps have drawn some interesting observations!"
-                   ),
-                   selectInput(
-                     inputId = "CompliancePicSelect",
-                     label = "Select a map",
-                     choices = c(
-                       "Complaints Open for 30 Days+",
-                       "Complaint-Parcel Ratio",
-                       "Complaints Referred to Law",
-                       "Missing and Expired Rental Registry"
+                       "Leads: Samantha Linnett and I met with Cheryl Giarrusso of Central New York's 211. They have offered to share call
+                       data and service provider data."
                      )
+                     )),
+                 h4("Data Governance & Maturity"),
+                 tags$ol(
+                   tags$li(
+                     "Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"
                    ),
-                   h5("Observations:"),
-                   h5(
-                     "(1) Each of the maps to the right show geographic concentrations of particular challenges throughout the city.
-                     As discussed in the 'Place-Based Approach' tab, most challenges follow an almost identical geographic pattern -
-                     areas directly adjacent to downtown (Southwest, Near Westside and Northside) harbor the greatest concentration of
-                     any particular challenge (poverty rates, crime, unemployment, etc.). We see this trend continued with the
-                     'Complaint-Parcel Ratio' map. However, the other maps each show unique trends. Each challenge still seems to
-                     concentrate itself geographically, but the neighborhoods vary."
+                   tags$li(
+                     "Available Services: Over the duration of CNY 211's 30 years, they have tracked and logged any service provider within the
+                     5 contiguous counties. They are going to provide the full list of programs/services throughout the city of Syracuse and Onondaga
+                     County, their hours of operations, the categories of services they provide, address and the # of referrals per service."
                    ),
-                   h5(
-                     "(2) 'Complaint-Parcel Ratio' map and 'Complaints Open for 30 Days+' map show almost opposite geographic areas.
-                     This suggests that properties in neighborhoods such as the Northside may get a lot of code violations but they
-                     resolve them within an acceptable timeframe."
-                   ),
-                   h5(
-                     "(3) It was rather shocking to me that the areas with the highest percent of missing or expired rental registries
-                     were in the same census tracts where we've put federal dollars toward rental rehabilitation (see the 'Residential'
-                     mini-tab under the 'Place-Based Approach' tab)."
+                   tags$li(
+                     "Calls: CNY 211 has offered to provide their call data at the zip code level for Syracuse: # of calls, subject of the call,
+                     time and date of the call. We are also looking into police call data and cityline call data."
+                   )
+                   )
+                 ),
+               
+               ################PUBLIC TRANSPORTATION UI##############
+               tabPanel(
+                 "Public Transportation",
+                 fixedRow(column(
+                   12, leafletOutput("TransportationMap1", height = "700px")
+                 )),
+                 tags$hr(),
+                 fixedRow(column(
+                   4,
+                   selectInput(
+                     inputId = "TransitCensus",
+                     label = "Census Level Data",
+                     choices = featureList8
+                   )
+                 )),
+                 fixedRow(column(
+                   6, plotlyOutput("TransportationGraph1", height = "700px")
+                 ),
+                 column(
+                   6, leafletOutput("TransportationMap2", height = "700px")
+                 )),
+                 tags$hr(),
+                 fixedRow(
+                   column(8, leafletOutput("TransportationMap3", height = "700px")),
+                   column(
+                     4,
+                     h6(
+                       "The map to the left looks at the minutes it takes to get from the center of each census tract to a specific location (i.e. downtown) using public transportation divided
+                       by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
+                       to no range and a small standard deviation."
+                     ),
+                     numericInput("TransportObs1", "# of rows:", 16),
+                     tableOutput("TransportTable1")
+                     )
+                   )
+               )
+                   )),
+    
+    ##############DOCE UI############
+    tabPanel(h4("DOCE"),
+             tabsetPanel(
+               tabPanel(
+                 "Tab Overview",
+                 h4("Problem Definition"),
+                 tags$ol(tags$li(
+                   c(
+                     "Problem Definition: Several interviews have brought the teams attention to the Division
+                     of Code Enforcement (DOCE) as a tool to address poverty. Conversations with the current Director of
+                     Code Enforcement (as well as previous Directors) and other members of the Department of
+                     Neighborhood and Business Development list the DOCE as having great potential for impacting
+                     unsafe living conditions. What is this potential? What is the current capacity? What can be done
+                     to increase the capacity to meet this potential?"
                    )
                    ),
-                 column(9, imageOutput("CompliancePic"))
+                   tags$li("Leads: ")),
+                 h4("Data Governance & Maturity"),
+                 fixedRow(column(
+                   12,
+                   selectInput(
+                     inputId = "CodeViolationSelect",
+                     label = h4("Snapshots of Previous Research"),
+                     choices =
+                       c(
+                         "Life of a Code Violation",
+                         "Code Violation Heat Map",
+                         "Neighborhood Compliance Rate",
+                         "Demolition Strategy",
+                         "Demolition Candidates",
+                         "Housing Vulnerable Case Load",
+                         "Bed Bug Breakdown",
+                         "Legal Streamline Weighting System"
+                       ),
+                     selected = "Neighborhood Compliance Rate"
                    )
-                 )
-             ))
-               )))
+                 )),
+                 #Vertical space
+                 fixedRow(column(12, imageOutput("CodeViolationPic")))
+                 ),
+               
+               #########BOTTLENECKS UI##################
+               tabPanel(
+                 "Bottlenecks",
+                 h4(
+                   "How well does the current DOCE function? Are there bottlenecks in the process?"
+                 ),
+                 fixedRow(column(
+                   3,
+                   selectInput(
+                     inputId = "ComplaintStatusSelect",
+                     label = h4("Complaint Status:"),
+                     choices = featureList9,
+                     selected = "Referred to Law"
+                   )
+                 )),
+                 fixedRow(column(
+                   6, dygraphOutput("ComplaintGraph1", height = "500px")
+                 ),
+                 column(
+                   6, plotlyOutput("ComplaintGraph2", height = "500px")
+                 )),
+                 fixedRow(column(
+                   12,
+                   selectInput(
+                     inputId = "HeatMapSort",
+                     label = "Which case status would you like to sort by?",
+                     choices = featureList10,
+                     selected = "High Priority Review"
+                   )
+                 )),
+                 fixedRow(column(
+                   12, d3heatmapOutput("violationHeatmap", height = "1000px")
+                 ))
+               ),
+               ##########COMPLIANCE UI#################
+               tabPanel(
+                 "Compliance",
+                 h4(
+                   "In several interviews, 'compliance' has been listed as the DOCE's ultimate goal. Is compliance happening? If not,
+                   are there any trends surrounding compliant and noncompliant homeowners and properties?"
+                 ),
+                 fixedRow(
+                   column(
+                     3,
+                     h5(
+                       "Michelle Sczpanski has headed an analysis of the current compliance rates throughout Syracuse (see right).
+                       Her attached maps have drawn some interesting observations!"
+                     ),
+                     selectInput(
+                       inputId = "CompliancePicSelect",
+                       label = "Select a map",
+                       choices = c(
+                         "Complaints Open for 30 Days+",
+                         "Complaint-Parcel Ratio",
+                         "Complaints Referred to Law",
+                         "Missing and Expired Rental Registry"
+                       )
+                     ),
+                     h5("Observations:"),
+                     h5(
+                       "(1) Each of the maps to the right show geographic concentrations of particular challenges throughout the city.
+                       As discussed in the 'Place-Based Approach' tab, most challenges follow an almost identical geographic pattern -
+                       areas directly adjacent to downtown (Southwest, Near Westside and Northside) harbor the greatest concentration of
+                       any particular challenge (poverty rates, crime, unemployment, etc.). We see this trend continued with the
+                       'Complaint-Parcel Ratio' map. However, the other maps each show unique trends. Each challenge still seems to
+                       concentrate itself geographically, but the neighborhoods vary."
+                     ),
+                     h5(
+                       "(2) 'Complaint-Parcel Ratio' map and 'Complaints Open for 30 Days+' map show almost opposite geographic areas.
+                       This suggests that properties in neighborhoods such as the Northside may get a lot of code violations but they
+                       resolve them within an acceptable timeframe."
+                     ),
+                     h5(
+                       "(3) It was rather shocking to me that the areas with the highest percent of missing or expired rental registries
+                       were in the same census tracts where we've put federal dollars toward rental rehabilitation (see the 'Residential'
+                       mini-tab under the 'Place-Based Approach' tab)."
+                     )
+                     ),
+                   column(9, imageOutput("CompliancePic"))
+                     )
+                   )
+               ))
+                 )))
 
 # server.R definition
 server <- function(input, output, session) {
