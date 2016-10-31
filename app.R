@@ -112,8 +112,8 @@ Dat.AssetPercent[, c(2:28, 31:34)] <-
   round(100 * Dat.AssetPercent[, c(2:28, 31:34)], 2)
 
 #Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55), ]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55), ]
+Dat.AssetCount <- Dat.AssetCount[c(1:55),]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
 
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
@@ -394,7 +394,7 @@ shape.Syracuse <-
                  shape.Tracts$NAME == 60 |
                  shape.Tracts$NAME == 61.01 |
                  shape.Tracts$NAME == 61.02 |
-                 shape.Tracts$NAME == 61.03, ]
+                 shape.Tracts$NAME == 61.03,]
 
 
 nhoodIcon <- makeIcon(
@@ -407,9 +407,9 @@ nhoodIcon <- makeIcon(
 
 #Asset Density Sorting
 Dat.AssetDensity <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength), ]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
 Dat.AssetDensity2 <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel), ]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
 Dat.DensityLength <- Dat.AssetDensity[, c(1, 3, 7, 4)]
 colnames(Dat.DensityLength) <-
   c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
@@ -462,7 +462,7 @@ TransitCounts <- TransitCounts[, c(1:6, 9, 18, 23:24, 26:29)]
 TransitCounts$CensusTract1 <-
   as.character(TransitCounts$CensusTract1)
 #Sort Transit Data
-TransitCounts <- TransitCounts[order(TransitCounts$TransitCount), ]
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
 TransitCounts$CT <-
   factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
@@ -471,24 +471,51 @@ Dat.Tract$Concat <- paste(Dat.Tract$lat, "+", Dat.Tract$lon)
 Dat.Tract$Concat <- gsub(" ", "", Dat.Tract$Concat, fixed = TRUE)
 origin = Dat.Tract$Concat
 mode = "transit"
+mode2 = "driving"
 destination = "43.0479517596+-76.1505944348"
+
+drivingresults = gmapsdistance(origin,
+                               destination,
+                               mode = mode2,
+                               key = APIkey,
+                               shape = "long")
+
+drivingresults <- as.data.frame(drivingresults)
+drivingresults2 <- drivingresults[, c(1:3, 6)]
+
+colnames(drivingresults2) <-
+  c("Origin", "Destination", "Time_Seconds", "Dist_Meters")
+
+drivingresults2$TotalMiles <-
+  round(drivingresults2$Dist_Meters * .000621371, 2)
+drivingresults2$TotalMinutes <-
+  round(drivingresults2$Time_Seconds * .0166667, 2)
 
 results = gmapsdistance(origin,
                         destination,
                         mode = mode,
                         key = APIkey,
                         shape = "long")
+
 results <- as.data.frame(results)
 results2 <- results[, c(1:3, 6)]
+
 colnames(results2) <-
   c("Origin", "Destination", "Time_Seconds", "Dist_Meters")
-results2$Dist_Miles <- round(results2$Dist_Meters * .000621371, 2)
-results2$Time_Minutes <- round(results2$Time_Seconds * .0166667, 2)
+
+results2$TotalMiles <- round(results2$Dist_Meters * .000621371, 2)
+results2$TotalMinutes <- round(results2$Time_Seconds * .0166667, 2)
+
+DrivingDat.Tract_Dist <-
+  merge(Dat.Tract, drivingresults2, by.x = "Concat", by.y = "Origin")
+DrivingDat.Tract_Dist[30,9] <- 0
+DrivingDat.Tract_Dist$MinutesPerMile <-
+  DrivingDat.Tract_Dist$TotalMinutes / DrivingDat.Tract_Dist$TotalMiles
 
 Dat.Tract_Dist <-
   merge(Dat.Tract, results2, by.x = "Concat", by.y = "Origin")
-Dat.Tract_Dist$TimeOverDist <-
-  Dat.Tract_Dist$Time_Minutes / Dat.Tract_Dist$Dist_Miles
+Dat.Tract_Dist$MinutesPerMile <-
+  Dat.Tract_Dist$TotalMinutes / Dat.Tract_Dist$TotalMiles
 
 Dat.DistTime <-
   merge(shape.Syracuse,
@@ -496,9 +523,19 @@ Dat.DistTime <-
         by.x = "NAME",
         by.y = "NAME")
 
+DrivingDat.DistTime <-
+  merge(shape.Syracuse,
+        DrivingDat.Tract_Dist,
+        by.x = "NAME",
+        by.y = "NAME")
+
 Dat.Tract_Dist2 <- Dat.Tract_Dist[, c(2, 8:10)]
 Dat.Tract_Dist2 <-
-  Dat.Tract_Dist2[order(Dat.Tract_Dist2$TimeOverDist, decreasing = TRUE), ]
+  Dat.Tract_Dist2[order(Dat.Tract_Dist2$MinutesPerMile, decreasing = TRUE),]
+
+DrivingDat.Tract_Dist2 <- DrivingDat.Tract_Dist[, c(2, 8:10)]
+DrivingDat.Tract_Dist2 <-
+  DrivingDat.Tract_Dist2[order(DrivingDat.Tract_Dist2$MinutesPerMile, decreasing = TRUE),]
 
 #Cleaning data for Dat.Violations
 Dat.Violations$Violation.Date <-
@@ -506,7 +543,7 @@ Dat.Violations$Violation.Date <-
 
 complaint.date <- Dat.Violations$Violation.Date
 post.2012 <- complaint.date > "2011-12-31"
-Dat.Violations <- Dat.Violations[post.2012 , ]
+Dat.Violations <- Dat.Violations[post.2012 ,]
 complaint.date <- Dat.Violations$Violation.Date
 
 month.year <- cut(complaint.date, breaks = "month")
@@ -604,7 +641,7 @@ Dat.CleanedViolations1 <-
         by.x = "Violation.Description",
         by.y = "Violation.Description")
 Dat.CleanedViolations2 <-
-  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99, ]
+  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99,]
 Dat.CleanedViolations2$Count <- 1
 dat.VHM1 <-
   as.data.frame(
@@ -1188,13 +1225,12 @@ ui <- fluidPage(# Set theme
                    )
                  ),
                
-               ################PUBLIC TRANSPORTATION UI##############
+               ################NUMBER OF CENTRO UI##############
                tabPanel(
-                 "Public Transportation",
+                 "# of Centro Stops",
                  h4("Question:"),
                  h5(
-                   "In countless interviews, the issue of transporation has come up. Is Syracuse's public transportation a barrier
-                   between people and economic opportunity?"
+                   "In countless interviews, the issue of transporation has come up. Are there enough public transit stops in Syracuse?"
                  ),
                  fixedRow(column(
                    3,
@@ -1211,7 +1247,7 @@ ui <- fluidPage(# Set theme
                    )),
                    h4("Observations:"),
                    h5(
-                     "At a glance, these data show an dense system of Centro stops throughout Syracuse (the County seems more sparse).
+                     "At a glance, these data show a dense system of Centro stops throughout Syracuse (the County seems more sparse).
                      The map directly below colors each census tract by the # of transit stops within it. There is a large range but this
                      is most likely impacted by size (i.e. Census tract 46 / Meadowbrook has the highest # of transit stops but is also one
                      of the largest census tracts in the city and census tract 3 only has 10 transit stops but covers a very small area)."
@@ -1241,10 +1277,22 @@ ui <- fluidPage(# Set theme
                  ),
                  column(
                    6, plotlyOutput("TransportationGraph1", height = "700px")
-                 )),
-                 tags$hr(),
+                 ))
+                 ),
+               ##############PUBLIC TRANSIT EFFICIENCY UI###############
+               tabPanel(
+                 "Public Transit Efficiency",
+                 h4("Question:"),
+                 h5("How long does it take to get from one point to the next? How much does this differ from having a car?"),
+                 h4("Description:"),
+                 h5("Time and distance estimates taken from Google Maps (https://www.google.com/maps)"),
+                 h5("Comparing time spent in public transit vs time spent in a car is not a perfect measure of public transit
+                       efficiency However, based on the data available (Google maps), it is a pretty good description of the additional
+                       time needed in a day for transportation for someone who does not own a car."),
+                 h4(div("Mapping the minutes per mile from the center of each Census Tract to Downtown using PUBLIC TRANSPORTATION", style = "color:green")),
                  fixedRow(
-                   column(8, leafletOutput("TransportationMap3", height = "700px")),
+                   column(8,
+                          leafletOutput("TransportationMap3", height = "700px")),
                    column(
                      4,
                      h5(
@@ -1252,17 +1300,26 @@ ui <- fluidPage(# Set theme
                        by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
                        to no range and a small standard deviation."
                      ),
-                     h5(
-                       "Note: Comparing time spend on public transit vs time spent in a car is not a perfect measure of public transit
-                       efficiency However, based on the data available (Google maps), it is a pretty good description of the additional
-                       time needed in a day for transportation for someone who does not own a car."
-                     ),
-                     numericInput("TransportObs1", "# of rows:", 12),
+                     numericInput("TransportObs1", "# of rows:", 15),
                      tableOutput("TransportTable1")
                      )
-                     )
+                     ),
+                 h4(div("Mapping the minutes per mile from the center of each Census Tract to Downtown using a PERSONAL VEHICLE", style = "color:green")),
+                 fixedRow(
+                   column(
+                     4,
+                     h5(
+                       "The map to the right looks at the minutes it takes to get from the center of each census tract to a specific
+                       location (i.e. downtown) using a personal vehicle divided by the # of miles from the center of each census
+                       tract to a specific location (i.e. downtown)."
+                     ),
+                     numericInput("TransportObs2", "# of rows:", 15),
+                     tableOutput("TransportTable2")
+                     ),
+                   column(8, leafletOutput("TransportationMap4", height = "700px"))
                    )
-               )),
+                 ))
+                   ),
     
     ##############DOCE UI############
     tabPanel(h4("DOCE"),
@@ -1662,7 +1719,7 @@ server <- function(input, output, session) {
       
       output$AssetMap1 <- renderLeaflet({
         NonResSubset <-
-          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1, ]
+          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
         
         leaflet(shape.asset) %>%
           setView(lng = -76.1474,
@@ -1786,7 +1843,7 @@ server <- function(input, output, session) {
       })
       
       output$CCVarietyPlot <- renderPlotly({
-        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor, ]
+        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
         CCSubset$GeneralCategories <-
           as.character(CCSubset$GeneralCategories)
         CCSubset$Count <- 1
@@ -1822,13 +1879,13 @@ server <- function(input, output, session) {
       #########DIS/INVESTMENT SERVER####
       output$AccessMap1 <- renderLeaflet({
         accessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible, ]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
         InaccessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible, ]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
         ProblemSubset <-
-          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem,]
+          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
         Investment <-
-          Dat.Investment[Dat.Investment$Activity == input$Investment,]
+          Dat.Investment[Dat.Investment$Activity == input$Investment, ]
         
         leaflet(shape.access) %>%
           setView(lng = -76.1474,
@@ -2181,18 +2238,48 @@ server <- function(input, output, session) {
             stroke = FALSE,
             fillOpacity = 0.7,
             smoothFactor = 0.5,
-            color = ~ colorNumeric("Greens", Dat.DistTime$TimeOverDist)(Dat.DistTime$TimeOverDist),
+            color = ~ colorNumeric("Greens", Dat.DistTime$MinutesPerMile)(Dat.DistTime$MinutesPerMile),
             popup = paste(
               "Time to Destination: ",
-              Dat.DistTime$Time_Minutes,
+              Dat.DistTime$TotalMinutes,
               "Miles to Destination: ",
-              Dat.DistTime$Dist_Miles
+              Dat.DistTime$TotalMiles
+            )
+          )
+      })
+      
+      output$TransportationMap4 <- renderLeaflet({
+        leaflet(DrivingDat.DistTime) %>%
+          setView(lng = -76.1474,
+                  lat = 43.0481,
+                  zoom = 12) %>%
+          addProviderTiles("CartoDB.Positron") %>%
+          addMarkers(
+            ~ lon,
+            ~ lat,
+            icon = nhoodIcon,
+            popup = paste("Census Tract: ", DrivingDat.DistTime$NAME)
+          ) %>%
+          addPolygons(
+            stroke = FALSE,
+            fillOpacity = 0.7,
+            smoothFactor = 0.5,
+            color = ~ colorNumeric("Greens", DrivingDat.DistTime$MinutesPerMile)(DrivingDat.DistTime$MinutesPerMile),
+            popup = paste(
+              "Time to Destination: ",
+              DrivingDat.DistTime$TotalMinutes,
+              "Miles to Destination: ",
+              DrivingDat.DistTime$TotalMiles
             )
           )
       })
       
       output$TransportTable1 <- renderTable({
         head(Dat.Tract_Dist2, n = input$TransportObs1)
+      })
+      
+      output$TransportTable2 <- renderTable({
+        head(DrivingDat.Tract_Dist2, n = input$TransportObs2)
       })
       
       #########DOCE SERVER####
@@ -2273,7 +2360,7 @@ server <- function(input, output, session) {
       #########BOTTLENECKS SERVER##################
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
-          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect ,]
+          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
         
         # Dropping months with zero complaints
         ncomps <- 0
@@ -2323,7 +2410,7 @@ server <- function(input, output, session) {
       
       output$violationHeatmap <- renderD3heatmap({
         dat.VHM3 <-
-          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE),]
         d3heatmap(
           dat.VHM3,
           colors = "BuGn",
