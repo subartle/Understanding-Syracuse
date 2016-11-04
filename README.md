@@ -1,4 +1,4 @@
 # Understanding-Syracuse
-A log of the Syracuse I-Team's Economic Opportunity Analysis Requests 
+A log of the Syracuse i-Team's Economic Opportunity Analysis Requests 
 
 Take a look: https://sbartlett.shinyapps.io/Application/
