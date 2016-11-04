@@ -123,8 +123,8 @@ Dat.AssetPercent[, c(2:28, 31:34)] <-
   round(100 * Dat.AssetPercent[, c(2:28, 31:34)], 2)
 
 #Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55),]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
+Dat.AssetCount <- Dat.AssetCount[c(1:55), ]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55), ]
 
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
@@ -405,7 +405,7 @@ shape.Syracuse <-
                  shape.Tracts$NAME == 60 |
                  shape.Tracts$NAME == 61.01 |
                  shape.Tracts$NAME == 61.02 |
-                 shape.Tracts$NAME == 61.03,]
+                 shape.Tracts$NAME == 61.03, ]
 
 
 nhoodIcon <- makeIcon(
@@ -418,9 +418,9 @@ nhoodIcon <- makeIcon(
 
 #Asset Density Sorting
 Dat.AssetDensity <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength), ]
 Dat.AssetDensity2 <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel), ]
 Dat.DensityLength <- Dat.AssetDensity[, c(1, 3, 7, 4)]
 colnames(Dat.DensityLength) <-
   c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
@@ -470,7 +470,7 @@ Dat.Violations$Violation.Date <-
 
 complaint.date <- Dat.Violations$Violation.Date
 post.2012 <- complaint.date > "2011-12-31"
-Dat.Violations <- Dat.Violations[post.2012 ,]
+Dat.Violations <- Dat.Violations[post.2012 , ]
 complaint.date <- Dat.Violations$Violation.Date
 
 month.year <- cut(complaint.date, breaks = "month")
@@ -568,7 +568,7 @@ Dat.CleanedViolations1 <-
         by.x = "Violation.Description",
         by.y = "Violation.Description")
 Dat.CleanedViolations2 <-
-  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99,]
+  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99, ]
 Dat.CleanedViolations2$Count <- 1
 dat.VHM1 <-
   as.data.frame(
@@ -668,7 +668,7 @@ TransitCounts$CensusTract1 <-
   as.character(TransitCounts$CensusTract1)
 
 #Sort Transit Data
-TransitCounts <- TransitCounts[order(TransitCounts$TransitCount), ]
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
 TransitCounts$CT <-
   factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
@@ -1009,9 +1009,16 @@ Dat.Driving$'11:00 p.m.' <-
   round(Dat.Driving$D_ElevenPM.TimeTime / Dat.Driving$D_ElevenPM.DistanceDistance,
         2)
 
-Dat.Driving[30, c(50:73)] <- 0
+Dat.Driving <-
+  merge(Dat.Driving,
+        Dat.Tract,
+        by.x = "NAME",
+        by.y = "NAME")
 
-Dat.Driving.Clean <- Dat.Driving[, c(1, 50:73)]
+Dat.Driving.Clean <- Dat.Driving[, c(1, 50:75)]
+Dat.Driving.Clean[25, c(2:25)] <- 0
+
+
 
 
 #BUILDING Dat.Transit
@@ -1089,9 +1096,14 @@ Dat.Transit$'11:00 p.m.' <-
   round(Dat.Transit$T_ElevenPM.TimeTime / Dat.Transit$T_ElevenPM.DistanceDistance,
         2)
 
-Dat.Transit[30, c(50:73)] <- 0
+Dat.Transit <-
+  merge(Dat.Transit,
+        Dat.Tract,
+        by.x = "NAME",
+        by.y = "NAME")
 
-Dat.Transit.Clean <- Dat.Transit[, c(1, 50:73)]
+Dat.Transit.Clean <- Dat.Transit[, c(1, 50:75)]
+Dat.Transit.Clean[25, c(2:25)] <- 0
 
 #Building Comparison Tables
 #Building Difference in total # of minutes transit total time - driving total time
@@ -1190,7 +1202,13 @@ Dat.ComparisonMerge$'11:00 p.m.' <-
     2
   )
 
-Dat.ComparisonMerge <- Dat.ComparisonMerge[, c(1, 146:169)]
+Dat.ComparisonMerge <-
+  merge(Dat.ComparisonMerge,
+        Dat.Tract,
+        by.x = "NAME",
+        by.y = "NAME")
+
+Dat.ComparisonMerge <- Dat.ComparisonMerge[, c(1, 146:171)]
 Dat.ComparisonMerge[25, c(2:25)] <- 0
 
 #Building Difference in minutes per mile
@@ -1273,9 +1291,14 @@ Dat.ComparisonMergeMPM$'11:00 p.m.' <-
   round(Dat.ComparisonMergeMPM$`11:00 p.m..y` - Dat.ComparisonMergeMPM$`11:00 p.m..x`,
         2)
 
-Dat.ComparisonMergeMPM <- Dat.ComparisonMergeMPM[, c(1, 50:73)]
-Dat.ComparisonMergeMPM[25, c(2:25)] <- 0
+Dat.ComparisonMergeMPM <-
+  merge(Dat.ComparisonMergeMPM,
+        Dat.Tract,
+        by.x = "NAME",
+        by.y = "NAME")
 
+Dat.ComparisonMergeMPM <- Dat.ComparisonMergeMPM[, c(1, 50:75)]
+Dat.ComparisonMergeMPM[25, c(2:25)] <- 0
 
 Shape.ComparisonMergeMPM <-
   merge(shape.Syracuse,
@@ -1287,630 +1310,644 @@ Shape.ComparisonMergeMPM <-
 # ui.R definition
 ui <- fluidPage(# Set theme
   theme = shinytheme("united"),
-  mainPanel(tabsetPanel(
-    ###########METHODOLOGY#########
-    tabPanel(h4("Methodology"),
-             tabsetPanel(
-               tabPanel(
-                 "Framework",
-                 h4("Query Purpose"),
-                 tags$ol(
-                   tags$li("What is the problem/question you are trying to solve?"),
-                   tags$li("Where did it come from? Who or what initiated the query?"),
-                   tags$li(
-                     "Where does the problem exist - public/private domain. Who is currently responsible for an intervention and what might that look like?"
+  mainPanel(
+    tabsetPanel(
+      ###########METHODOLOGY#########
+      tabPanel(h4("Methodology"),
+               tabsetPanel(
+                 tabPanel(
+                   "Framework",
+                   h4("Query Purpose"),
+                   tags$ol(
+                     tags$li("What is the problem/question you are trying to solve?"),
+                     tags$li("Where did it come from? Who or what initiated the query?"),
+                     tags$li(
+                       "Where does the problem exist - public/private domain. Who is currently responsible for an intervention and what might that look like?"
+                     ),
+                     tags$li("How is this analysis helpful?"),
+                     tags$li("What data sets do you have access to relevant to the problem?"),
+                     tags$li("What fields are in each of the data sources?"),
+                     tags$li(
+                       "How many people/addresses/faciliites/entities/jursidictions does the data contain?"
+                     ),
+                     tags$li(
+                       "For this problem, what % of entities are at risk or have resources to be intervened?"
+                     )
                    ),
-                   tags$li("How is this analysis helpful?"),
-                   tags$li("What data sets do you have access to relevant to the problem?"),
-                   tags$li("What fields are in each of the data sources?"),
-                   tags$li(
-                     "How many people/addresses/faciliites/entities/jursidictions does the data contain?"
+                   h4("Data Governance & Maturity"),
+                   tags$ol(
+                     tags$li(
+                       "What analysis has been done thus far and what conclusions has it drawn? Give credit where credit is due."
+                     ),
+                     tags$li(
+                       "For the data sets that you have access to - who is responsible for the data (which organization and person)?"
+                     ),
+                     tags$li("Is the data accessible outside the department? Is there a VPN?"),
+                     tags$li(
+                       "What security policies and considerations need to be in place for each of the data sources? (HIPPA, FERPA, etc)"
+                     ),
+                     tags$li("How is the data stored?"),
+                     tags$li("How accessible is the data that's required"),
+                     tags$li(
+                       "Do you have data that is both relevant and sufficient to solve the problem?"
+                     ),
+                     tags$li("How is the data quality?"),
+                     tags$li("How often is the data collected?"),
+                     tags$li("What is the level of granularity for the data sources?"),
+                     tags$li("How much history is stored? How are updates handled?"),
+                     tags$li("How integrated are the different data sources?"),
+                     tags$li("What data privacy policies are in place?"),
+                     tags$li("How well documented are the data?")
                    ),
-                   tags$li(
-                     "For this problem, what % of entities are at risk or have resources to be intervened?"
+                   h4("Next Steps"),
+                   tags$ol(
+                     tags$li(
+                       "What (if any) questions did this analysis answer or bring insight to?"
+                     ),
+                     tags$li(
+                       "What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"
+                     ),
+                     tags$li(
+                       "This should link back up to the 'problem definition' and 'leads' for the next step or tab."
+                     )
+                   ),
+                   h5(
+                     "This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire. All data and code is stored on Github: https://github.com/subartle/Understanding-Syracuse."
                    )
                  ),
-                 h4("Data Governance & Maturity"),
-                 tags$ol(
-                   tags$li(
-                     "What analysis has been done thus far and what conclusions has it drawn? Give credit where credit is due."
+                 tabPanel(
+                   "Contacts and Acknowledgements",
+                   h5(
+                     "The following analysis required a tremendous amount of guidance and assistance from the following. Furthermore, several graphics were
+                     copied from previous research done by fellow teammates and partners. Please find their names and contact information below and look for
+                     acknowledgements throughout the text. If you have questions regarding a specific graphic or piecec of analysis, please contact Susannah
+                     Bartlett with the City of Syracuse's Department of Innovation for detailed information."
                    ),
-                   tags$li(
-                     "For the data sets that you have access to - who is responsible for the data (which organization and person)?"
+                   h4(
+                     "City of Syracuse Department of Neighbrohood and Business Development"
                    ),
-                   tags$li("Is the data accessible outside the department? Is there a VPN?"),
-                   tags$li(
-                     "What security policies and considerations need to be in place for each of the data sources? (HIPPA, FERPA, etc)"
+                   h5("Paul Driscoll: Commisioner - pdriscoll@syrgov.net"),
+                   h5(
+                     "Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."
                    ),
-                   tags$li("How is the data stored?"),
-                   tags$li("How accessible is the data that's required"),
-                   tags$li(
-                     "Do you have data that is both relevant and sufficient to solve the problem?"
+                   h5("Belen Cordon: Planner 1 - bcordon@syrgov.net"),
+                   h5("Michelle Sczpanski: NBD Planner - msczpanski@sygovn.net"),
+                   h4("Syracuse Community Geography Department"),
+                   h5(
+                     "Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"
                    ),
-                   tags$li("How is the data quality?"),
-                   tags$li("How often is the data collected?"),
-                   tags$li("What is the level of granularity for the data sources?"),
-                   tags$li("How much history is stored? How are updates handled?"),
-                   tags$li("How integrated are the different data sources?"),
-                   tags$li("What data privacy policies are in place?"),
-                   tags$li("How well documented are the data?")
-                 ),
-                 h4("Next Steps"),
-                 tags$ol(
-                   tags$li(
-                     "What (if any) questions did this analysis answer or bring insight to?"
+                   h4("City of Syracuse Department of Innovation"),
+                   h5("Sam Edelstein: Cheif Data Officer - sedelstein@syrgov.net"),
+                   h5("Samantha Linnett: Program Coordinator - slinnett@syrgov.net"),
+                   h5("Adria Finch: Project Manager - afinch@syrgov.net"),
+                   h5("Cassie Schmitt: Syracuse I-Team Intern - cschmitt@syrgov.net"),
+                   h4("Contact Community Services"),
+                   h5(
+                     "Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"
                    ),
-                   tags$li(
-                     "What (if any) deeper questions did this analysis come to demand? Did this analysis require a step back or out?"
+                   h4("Syracuse-Onondaga County Planning Agency"),
+                   h5(
+                     "Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net"
                    ),
-                   tags$li(
-                     "This should link back up to the 'problem definition' and 'leads' for the next step or tab."
+                   h4("Thank you!")
                    )
-                 ),
-                 h5(
-                   "This Frameworkf was taken from the University of Chicago's Center for Data Science & Public Policy's Data Maturity Framework Questionnaire. All data and code is stored on Github: https://github.com/subartle/Understanding-Syracuse."
-                 )
-               ),
-               tabPanel(
-                 "Contacts and Acknowledgements",
-                 h5(
-                   "The following analysis required a tremendous amount of guidance and assistance from the following. Furthermore, several graphics were
-                   copied from previous research done by fellow teammates and partners. Please find their names and contact information below and look for
-                   acknowledgements throughout the text. If you have questions regarding a specific graphic or piecec of analysis, please contact Susannah
-                   Bartlett with the City of Syracuse's Department of Innovation for detailed information."
-                 ),
-                 h4(
-                   "City of Syracuse Department of Neighbrohood and Business Development"
-                 ),
-                 h5("Paul Driscoll: Commisioner - pdriscoll@syrgov.net"),
-                 h5(
-                   "Stephanie Pasquale: Deputy Commissioner - spasquale@syrgov.net."
-                 ),
-                 h5("Belen Cordon: Planner 1 - bcordon@syrgov.net"),
-                 h5("Michelle Sczpanski: NBD Planner - msczpanski@sygovn.net"),
-                 h4("Syracuse Community Geography Department"),
-                 h5(
-                   "Jonnell Robinson: Syracuse Geography Director - jdallen@maxwell.syr.edu"
-                 ),
-                 h4("City of Syracuse Department of Innovation"),
-                 h5("Sam Edelstein: Cheif Data Officer - sedelstein@syrgov.net"),
-                 h5("Samantha Linnett: Program Coordinator - slinnett@syrgov.net"),
-                 h5("Adria Finch: Project Manager - afinch@syrgov.net"),
-                 h5("Cassie Schmitt: Syracuse I-Team Intern - cschmitt@syrgov.net"),
-                 h4("Contact Community Services"),
-                 h5(
-                   "Cheryl Giarrusso: Director of the Crisis Intervention Services - cgiarrusso@contactsyracuse.org"
-                 ),
-                 h4("Syracuse-Onondaga County Planning Agency"),
-                 h5(
-                   "Edward Hart: GIS Program Manager with SOCPA - EdwardHart@ongov.net"
-                 ),
-                 h4("Thank you!")
-                 )
-             )),
-    
-    ###########PLACED-BASED APPROACH######
-    tabPanel(
-      h4("Place-Based Approach"),
-      tabsetPanel(
-        tabPanel(
-          "Tab Overview",
-          h4("Problem Definition"),
-          tags$ol(
-            tags$li(
-              c(
-                "Problem Definition: Current analysis has effectively shown the concentration of poverty
-                and lack of resources throughout the city of Syracuse. When poverty, unemployment, lack
-                of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a
-                common trend appears: two large, curvature areas arc across the North and Southwest. In
-                meetings, these areas are often described as 'two red bananas'. Although accurate in relaying where social
-                issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there
-                a way to use data to further differentiate and delineate the needs within these neighborhoods?"
+               )),
+      
+      ###########PLACED-BASED APPROACH######
+      tabPanel(
+        h4("Place-Based Approach"),
+        tabsetPanel(
+          tabPanel(
+            "Tab Overview",
+            h4("Problem Definition"),
+            tags$ol(
+              tags$li(
+                c(
+                  "Problem Definition: Current analysis has effectively shown the concentration of poverty
+                  and lack of resources throughout the city of Syracuse. When poverty, unemployment, lack
+                  of access to a car, vacancy, crime, etc. is visualized across the face of Syracuse, a
+                  common trend appears: two large, curvature areas arc across the North and Southwest. In
+                  meetings, these areas are often described as 'two red bananas'. Although accurate in relaying where social
+                  issues exist, the proportion of public resources to the areas in red seems greatly unbalanced. Is there
+                  a way to use data to further differentiate and delineate the needs within these neighborhoods?"
+                )
+                ),
+              tags$li(
+                "Leads: A preliminary review of the analysis done was humbling. Analysts from the Syracuse University's
+                Community Geography Department, CNY Fair Housing, the City of Syracuse's Dept. of Neighborhood
+                and Business Development, Home HeadQuarters and numerous other sources (a small portion summarised below) captures
+                the long and dedicated conversation taken place thus far. The above question came out of
+                numerous meetings with J. Robinson and S. Edelstein about how to further and not simply duplicate this conversation."
+              ),
+              tags$li(
+                "This tab's analysis hopes to (2) further differntiate and define physical assets and need in specific geographical
+                areas and (2) offer an overview of access points for interventions."
               )
               ),
-            tags$li(
-              "Leads: A preliminary review of the analysis done was humbling. Analysts from the Syracuse University's
-              Community Geography Department, CNY Fair Housing, the City of Syracuse's Dept. of Neighborhood
-              and Business Development, Home HeadQuarters and numerous other sources (a small portion summarised below) captures
-              the long and dedicated conversation taken place thus far. The above question came out of
-              numerous meetings with J. Robinson and S. Edelstein about how to further and not simply duplicate this conversation."
+            h4("Data Governance & Maturity"),
+            tags$ol(
+              "Physical Assets: The SPAD data is stored in excel form at the SOCPA office. SPAD data is
+              recorded by Syracuse Police Department data, permitting data, Syracuse.com data and drive around
+              data. SPAD data is on the asset level. Ex) DestiNY may exist within one parcel but has hundreds of
+              assets within it. SPAD data captures every asset on a parcel. SPAD data is point in time data. Date
+              of when the asset was last updated or addes is recorded within the excel file."
+              ),
+            tags$ol(
+              "Place-Based Approach: Data was provided by the Department of Neighborhood and Business Development. The suspected
+              zombie properties list was taken from the City of Syracuse Application for 'Zombie' and Vacant Properties Remediation
+              and Prevention Initiative (prepared by Stephanie Pasquale and Michelle Sczpanski) "
             ),
-            tags$li(
-              "This tab's analysis hopes to (2) further differntiate and define physical assets and need in specific geographical
-              areas and (2) offer an overview of access points for interventions."
-            )
+            h4("Snapshots of Previous Research"),
+            tags$ol(
+              "Fact Sheets: Samantha Linnett (Program Coordinator for the Syracuse Innovation Team) took on the task of defining
+              Syracuse's population using census data and her awesome design skills."
             ),
-          h4("Data Governance & Maturity"),
-          tags$ol(
-            "Physical Assets: The SPAD data is stored in excel form at the SOCPA office. SPAD data is
-            recorded by Syracuse Police Department data, permitting data, Syracuse.com data and drive around
-            data. SPAD data is on the asset level. Ex) DestiNY may exist within one parcel but has hundreds of
-            assets within it. SPAD data captures every asset on a parcel. SPAD data is point in time data. Date
-            of when the asset was last updated or addes is recorded within the excel file."
+            tags$ol(
+              "Opportunity Indicies: Alys Mann and CNY Fair Housing defined what opportunity was and where it existed
+              throughout Onondaga County in the 2014 Analysis of Impediments to Fair Housing Report
+              (http://cnyfairhousing.org/wp-content/uploads/2014/11/CNY-Fair-Housing-sm2.pdf). Summaries of their work can be
+              found below."
             ),
-          tags$ol(
-            "Place-Based Approach: Data was provided by the Department of Neighborhood and Business Development. The suspected
-            zombie properties list was taken from the City of Syracuse Application for 'Zombie' and Vacant Properties Remediation
-            and Prevention Initiative (prepared by Stephanie Pasquale and Michelle Sczpanski) "
-          ),
-          h4("Snapshots of Previous Research"),
-          tags$ol(
-            "Fact Sheets: Samantha Linnett (Program Coordinator for the Syracuse Innovation Team) took on the task of defining
-            Syracuse's population using census data and her awesome design skills."
-          ),
-          tags$ol(
-            "Opportunity Indicies: Alys Mann and CNY Fair Housing defined what opportunity was and where it existed
-            throughout Onondaga County in the 2014 Analysis of Impediments to Fair Housing Report
-            (http://cnyfairhousing.org/wp-content/uploads/2014/11/CNY-Fair-Housing-sm2.pdf). Summaries of their work can be
-            found below."
-          ),
-          tags$ol(
-            "Access to Capital: Jonnell Robinson and staff at the Syracuse Community Geography Department have done extensive
-            research into the underlying causes of poverty and lack of opportunity. the 'Redlining' and 'Banks and Lending' tabs
-            are brief summaries of their research into access to capital."
-          ),
-          fixedRow(column(
-            12,
-            selectInput(
-              inputId = "redBananasSelect",
-              label = " ",
-              choices = c(
-                "General Factsheet",
-                "Business Factsheet",
-                "Crime Factsheet",
-                "Education Factsheet",
-                "Health Factsheet",
-                "Housing Factsheet",
-                "Opportunity Indices Part 1",
-                "Opportunity Indices Part 2",
-                "Banks and Lending",
-                "Redlining"
-              ),
-              selected = "General"
-            )
-          )),
-          
-          #Vertical space
-          fixedRow(column(12, imageOutput("redBananasPic")))
-          ),
-        
-        ###########PHYSICAL ASSETS UI#########
-        tabPanel(
-          "Physical Assets",
-          h4("Question:"),
-          h5(
-            "Is there a relationship between certain types of property based community assets and neighborhood health?"
-          ),
-          h4("Observations:"),
-          h5(
-            "Census tracts with a low unemployment rate also have a higher total # of households and a lower percentage of households with no vehicle. Furthermore, there is a positive relationship between these census tracts and residential assets and a negative relationship between these census tracts and all other, non-residential assets."
-          ),
-          h5(
-            "The below plots do NOT represent a causal relationship. However, they bring doubt to the hypothesis that census tracts with a higher # or % of non-residential services are more likely to have higher economic opportunity."
-          ),
-          h4("HOW TO:"),
-          tags$ol(
-            h5(
-              "Step 1: The drop down labeled 'Neighborhood Asset' includes data from the SPAD database (see Tab Overview for more information). For example if 'Banks and Lending' is selected, the plots below will group the total # of banks and lending institutions by census tract and the map will populate with a dot for every property that has a bank and lending institution within it."
+            tags$ol(
+              "Access to Capital: Jonnell Robinson and staff at the Syracuse Community Geography Department have done extensive
+              research into the underlying causes of poverty and lack of opportunity. the 'Redlining' and 'Banks and Lending' tabs
+              are brief summaries of their research into access to capital."
             ),
-            h5(
-              "Step 2: The drop down labeled 'Census Information' includes data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the plots will alter the x-axis accordingly and the map will shade by census tract. Be mindful of the map's legend."
-            ),
-            h5(
-              "Step 3: Click and drag over the plots' census dots. More detailed information will populate the gray table."
-            ),
-            h5(
-              "Step 4: Hover over the map's asset points for more detailed informaiton"
-            )
-          ),
-          
-          # Vertical space
-          tags$hr(),
-          
-          # Feature selection
-          fixedRow(column(
-            6,
-            selectInput(
-              inputId = "Input1",
-              label = "Neighborhood Asset",
-              choices = featureList2,
-              selected = "Banks and Lending"
-            )
-          ),
-          column(
-            6,
-            selectInput(
-              inputId = "Input2",
-              label = "Census Information",
-              choices = featureList3,
-              selected = "Median Income (in dollars)"
-            )
-          )),
-          
-          # First row
-          fixedRow(
-            column(
-              6,
-              plotlyOutput("Plot1", height = "400px"),
-              verbatimTextOutput("click1"),
-              plotlyOutput("Plot2", height = "400px")
-            ),
-            column(6, leafletOutput("AssetMap1", height = "800px"))
-          )
-        ),
-        
-        ##############COMMERCIAL CORRIDORS UI############
-        tabPanel(
-          "Commercial Corridors",
-          h4("Question:"),
-          h5(
-            "As you can see from the Physical Assets tab, non-residential assets are concentration downtown and spattered around the city.
-            Is there value to concentrating investment and planning efforts in commercial corridors? Does this organization of a corridor
-            result in healthier surrounding neighborhoods?"
-          ),
-          fixedRow(
-            column(
-              3,
-              h4("Identifying Existing Corridors:"),
-              h5(
-                "The dots identified in the map to the right represent the assets included in commercial corridors drawn by Commissioner
-                Paul Driscoll. According to this map, there are 17 commercial corridors throughout Syracuse."
-              ),
-              h4("HOW TO:"),
-              h5(
-                div("Dots in green represent commercial and public assets ", style = "color:green")
-              ),
-              h5(
-                div("Dots in orange represent residential assets", style = "color:orange")
-              ),
-              h5("Dots in white represent vacant assets"),
-              h5(
-                div("Dots in yellow represent mixed-use assets", style = "color:gold")
-              ),
-              h5(tags$b(
-                "Click on dots to identify their corridor's name."
-              )),
-              h4("Observations:"),
-              h5(
-                "Almost immediately, the team questioned whether the boundaries were accepted across the community. Are there other set
-                boundaries that may be more widely accepted? The City's Future Land Use Map may be a good place to look into? It could also
-                be that many of our corridors lack a strong enough identity to be clearly defined or understood by the community?"
-              )
-              ),
-            column(9, leafletOutput("CCAssetMap", height = "500px"))
-              ),
-          fixedRow(
-            column(
-              3,
-              h4("Corridor Breakdowns:"),
-              h5(
-                "My thought with the below graphics was that in order to understand what makes a commercial corridor an asset to a
-                community, we need to know what makes a commerical corridor... That is to say - what are the land uses within each
-                corridor? What is the diversity of uses? What is the density of the corridor? Are there trends across corridors?
-                Which corridors are 'successful' and are its characteristics?"
-              ),
+            fixedRow(column(
+              12,
               selectInput(
-                inputId = "CCorridor",
-                label = "Select a Corridor to see its breakdown",
-                choices = featureList7
-              ),
-              h4("Observations:"),
-              h5(
-                "As to be expected, neighborhoods that struggle with high poverty rates and low employment also have higher rates of vacancy
-                in their adjacent corridors."
-              ),
-              h5(
-                "Additionally, corridors with a high proportion of residential properties show lower rates of vacancy and surrounding poverty
-                when the corridor has a shorter length. Longer corridors that also have a high proportion of residential (such as Southside Salina, Wolf and Lodi),
-                also show higher rates of vacancy and surrounding poverty."
-              ),
-              h5(
-                "Finally, The analysis to the right and below does not necessarily indicate how a corridor influences its surrounding community.
-                'Erie Blvd E' has very little vacancy and is relatively dense but how has it impacted its surrounded neighborhoods. Although this
-                research was interesting and fun, unfortunately I don't think any fruitful conclusions have been drawn."
-              )
-              ),
-            column(9, plotlyOutput("CCVarietyPlot", height = "600px"))
-              ),
-          fixedRow(
-            column(8, plotlyOutput("CCDensityPlot", height = "500px")),
-            column(
-              4,
-              h6(
-                "The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total length (in feet) of that corridor."
-              ),
-              numericInput("DensityObs1", "# of rows:", 7),
-              tableOutput("CCLengthRatio")
-            )
-          ),
-          fixedRow(
-            column(8, plotlyOutput("CCDensityPlot2",  height = "500px")),
-            column(
-              4,
-              h6(
-                "The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total # of parcels (including vacant parcels & lots) in that corridor"
-              ),
-              numericInput("DensityObs2", "# of rows:", 7),
-              tableOutput("CCParcelRatio")
-            )
-          )
-              ),
-        
-        ##########DIS/INVESTMENT UI#############
-        tabPanel(
-          "Dis/Investment",
-          h4("Question:"),
-          h5(
-            "Where does the money go (private vs public)? What is the impact of investment/disinvestment on neighborhoods?"
-          ),
-          fixedRow(column(
-            3,
-            h4("Property Value Observations:"),
-            h5(
-              "Cassie Schmitt's analysis of Zillow data has brought forth some interesting observations and, like any good analysis,
-              follow-up questions. Below is a summary of the observations/questions made by the team."
-            ),
-            h5(
-              "In 1996, property values across the city were much closer together in value then they are today. What is the change
-              in property range from year to year?"
-            ),
-            h5(
-              "All neighborhoods have seen some kind of increase in home value over the last 20 years. What has been the percentage
-              change over time? How does this compare to national and state trends? How does the inflation rate come in to play?"
-            ),
-            h5(
-              "Take into account the housing crash – it looks like the most valuable properties are the ones that took the biggest
-              hit, where the homes in neighborhoods with less value did not have a price reduction – they are generally level. What
-              are the events that have impacted property values?"
-            ),
-            h5("What are the boundaries for the neighborhoods Zillow defines?")
-            ),
-            column(9, fixedRow(
-              plotlyOutput("ZillowLongPlot", height = "500px")
-            ))),
-          fixedRow(column(
-            3,
-            h4("CDBG, HOME and Lead $ Observations:"),
-            h5(
-              "Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"
-            )
-          ),
-          column(
-            9,
-            selectInput(
-              inputId = "Census2",
-              label = "Census Information",
-              choices = featureList3
-            ),
-            plotlyOutput("PlotInvested", height = "500px")
-          )),
-          fixedRow(tags$ol(
-            "HOW TO:",
-            h5(
-              "Step 1: The drop down labeled 'Accessible Properties' displays points where the City or a City partner currently has or has potential to take parcel ownership. Therefore, there is potential for a place based project."
-            ),
-            h5(
-              "Step 2: The drop down labeled 'Inaccessible Properties' displays points where the City would struggle to gain access to a parcel."
-            ),
-            h5(
-              "Step 3: The drop down labeled 'Census Information' colors the map with data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the map will shade by census tract. Be mindful of the map's legend and click the gold houses to identify census tract #s."
-            ),
-            h5(
-              "Step 4: The drop down labeled 'Property Investments' show where the City or a City partner has invested CDBG, HOME or Lead money over the past 5+ years (more detailed metadata to come). Click the purple points to identify the grant dollar amount invested in the property."
-            ),
-            h5(
-              "Step 5: Dont forget to click over golden houses and purple dots for more detailed info!"
-            )
-          )),
-          fixedRow(column(
-            4,
-            selectInput(
-              inputId = "Accessible",
-              label = "Accessible Properties",
-              choices = featureList1
-            )
-          ),
-          column(
-            4,
-            selectInput(
-              inputId = "Inaccessible",
-              label = "Inaccessible Properties",
-              choices = featureList4
-            )
-          )),
-          fixedRow(column(
-            4,
-            selectInput(
-              inputId = "Census",
-              label = "Census Information",
-              choices = featureList3
-            )
-          ),
-          column(
-            4,
-            selectInput(
-              inputId = "Investment",
-              label = "Property Investments",
-              choices = featureList5
-            )
-          )),
-          fixedRow(column(
-            12, leafletOutput("AccessMap1", height = "700px")
-          ))
-            )
-            )
-          ),
-    
-    
-    ##############COMMUNITY CONNECTION UI##############
-    tabPanel(
-      h4("Community Connection"),
-      tabsetPanel(
-        tabPanel(
-          "Tab Overview",
-          h4("Problem Definition"),
-          tags$ol(tags$li(
-            c(
-              "Problem Definition: Throughout the interview process, service providers and constituents alike say that there
-              is no lack of services in Syracuse, the problem lies instead with connecting people to those services.
-              When we ask how constituents hear about available services, the answer has been almost exclusively 'word-
-              of-mouth.' Additionally, interviewees have listed transportation to services as being problematic.
-              An additional theme is that service providers do not 'meet people where they are at' and instead
-              expect people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?"
-            )
-            ),
-            tags$li(
-              c(
-                "Leads: Samantha Linnett and I met with Cheryl Giarrusso of Central New York's 211. They have offered to share call
-                data and service provider data."
-              )
-              )),
-          h4("Data Governance & Maturity"),
-          tags$ol(
-            tags$li(
-              "Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"
-            ),
-            tags$li(
-              "Available Services: Over the duration of CNY 211's 30 years, they have tracked and logged any service provider within the
-              5 contiguous counties. They are going to provide the full list of programs/services throughout the city of Syracuse and Onondaga
-              County, their hours of operations, the categories of services they provide, address and the # of referrals per service."
-            ),
-            tags$li(
-              "Calls: CNY 211 has offered to provide their call data at the zip code level for Syracuse: # of calls, subject of the call,
-              time and date of the call. We are also looking into police call data and cityline call data."
-            )
-            )
-          ),
-        
-        ################NUMBER OF CENTRO UI##############
-        tabPanel(
-          "# of Centro Stops",
-          h4("Question:"),
-          h5(
-            "In countless interviews, the issue of transporation has come up. Are there enough public transit stops in Syracuse?"
-          ),
-          fixedRow(column(
-            3,
-            h4("Description:"),
-            h5(HTML(
-              paste(
-                "Each ",
-                tags$span(style = "color:green", "green "),
-                "dot in the map to the left shows a Centro
-                bus transit stop within Onondaga County. The data was downloaded from 'The National Transit Map'.
-                Scroll in and out to see the entire County.",
-                sep = ""
+                inputId = "redBananasSelect",
+                label = " ",
+                choices = c(
+                  "General Factsheet",
+                  "Business Factsheet",
+                  "Crime Factsheet",
+                  "Education Factsheet",
+                  "Health Factsheet",
+                  "Housing Factsheet",
+                  "Opportunity Indices Part 1",
+                  "Opportunity Indices Part 2",
+                  "Banks and Lending",
+                  "Redlining"
+                ),
+                selected = "General"
               )
             )),
+            
+            #Vertical space
+            fixedRow(column(12, imageOutput("redBananasPic")))
+            ),
+          
+          ###########PHYSICAL ASSETS UI#########
+          tabPanel(
+            "Physical Assets",
+            h4("Question:"),
+            h5(
+              "Is there a relationship between certain types of property based community assets and neighborhood health?"
+            ),
             h4("Observations:"),
             h5(
-              "At a glance, these data show a dense system of Centro stops throughout Syracuse (the County seems more sparse).
-              The map directly below colors each census tract by the # of transit stops within it. There is a large range but this
-              is most likely impacted by size (i.e. Census tract 46 / Meadowbrook has the highest # of transit stops but is also one
-              of the largest census tracts in the city and census tract 3 only has 10 transit stops but covers a very small area)."
+              "Census tracts with a low unemployment rate also have a higher total # of households and a lower percentage of households with no vehicle. Furthermore, there is a positive relationship between these census tracts and residential assets and a negative relationship between these census tracts and all other, non-residential assets."
             ),
             h5(
-              "Although the maps and graphic to the right and below show an extensive physical coverage of Centro transit stops
-              throughout the city, that does not necessarily mean that the public transit system is efficient. The real
-              questions that we need answers to are: How long does it take to get from one point to the next? How much does this
-              differ from having a car?"
-            )
+              "The below plots do NOT represent a causal relationship. However, they bring doubt to the hypothesis that census tracts with a higher # or % of non-residential services are more likely to have higher economic opportunity."
             ),
-            column(
-              9, leafletOutput("TransportationMap1", height = "500px")
-            )),
-          fixedRow(column(
-            4,
-            selectInput(
-              inputId = "TransitCensus",
-              label = "Census Level Data",
-              choices = featureList8
-            )
-          )),
-          fixedRow(column(
-            6,
-            h4(tags$b("# of Transit Stops by Census Tract")),
-            leafletOutput("TransportationMap2", height = "700px")
-          ),
-          column(
-            6, plotlyOutput("TransportationGraph1", height = "700px")
-          ))
-            ),
-        ##############PUBLIC TRANSIT EFFICIENCY UI###############
-        tabPanel(
-          "Public Transit Efficiency",
-          h4("Question:"),
-          h5(
-            "How long does it take to get from one point to the next? How much does this differ from having a car?"
-          ),
-          h4("Description:"),
-          h5(
-            "Time and distance estimates taken from Google Maps (https://www.google.com/maps). Data below are time and mile
-            estimates for 12-19-2015 (a weekday with light snow)."
-          ),
-          h5(
-            "Comparing time spent in public transit vs time spent in a car is not a perfect measure of public transit
-            efficiency However, based on the data available (Google maps), it is a pretty good description of the additional
-            time needed in a day for transportation for someone who does not own a car."
-          ),
-          h4(
-            "Mapping the minutes per mile from the center of each Census Tract to Downtown using PUBLIC TRANSPORTATION",
-            style = "color:green"
-          )
-          ),
-        fixedRow(column(
-          8,
-          leafletOutput("TransportationMap3", height = "700px")
-        ),
-        column(
-          4,
-          selectInput(
-            "DrivingHour",
-            "Hour of the Day:",
-            choices = list(
-              EarlyMorning = c(
-                "12:00 a.m.",
-                "1:00 a.m.",
-                "2:00 a.m.",
-                "3:00 a.m.",
-                "4:00 a.m.",
-                "5:00 a.m."
+            h4("HOW TO:"),
+            tags$ol(
+              h5(
+                "Step 1: The drop down labeled 'Neighborhood Asset' includes data from the SPAD database (see Tab Overview for more information). For example if 'Banks and Lending' is selected, the plots below will group the total # of banks and lending institutions by census tract and the map will populate with a dot for every property that has a bank and lending institution within it."
               ),
-              Morning = c(
-                "6:00 a.m.",
-                "7:00 a.m.",
-                "8:00 a.m.",
-                "9:00 a.m.",
-                "10:00 a.m.",
-                "11:00 a.m."
+              h5(
+                "Step 2: The drop down labeled 'Census Information' includes data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the plots will alter the x-axis accordingly and the map will shade by census tract. Be mindful of the map's legend."
               ),
-              Afternoon = c(
-                "12:00 p.m.",
-                "1:00 p.m.",
-                "2:00 p.m.",
-                "3:00 p.m.",
-                "4:00 p.m.",
-                "5:00 p.m."
+              h5(
+                "Step 3: Click and drag over the plots' census dots. More detailed information will populate the gray table."
               ),
-              Evening = c(
-                "6:00 p.m.",
-                "7:00 p.m.",
-                "8:00 p.m.",
-                "9:00 p.m.",
-                "10:00 p.m.",
-                "11:00 p.m."
+              h5(
+                "Step 4: Hover over the map's asset points for more detailed informaiton"
               )
             ),
-            multiple = FALSE
+            
+            # Vertical space
+            tags$hr(),
+            
+            # Feature selection
+            fixedRow(column(
+              6,
+              selectInput(
+                inputId = "Input1",
+                label = "Neighborhood Asset",
+                choices = featureList2,
+                selected = "Banks and Lending"
+              )
+            ),
+            column(
+              6,
+              selectInput(
+                inputId = "Input2",
+                label = "Census Information",
+                choices = featureList3,
+                selected = "Median Income (in dollars)"
+              )
+            )),
+            
+            # First row
+            fixedRow(
+              column(
+                6,
+                plotlyOutput("Plot1", height = "400px"),
+                verbatimTextOutput("click1"),
+                plotlyOutput("Plot2", height = "400px")
+              ),
+              column(6, leafletOutput("AssetMap1", height = "800px"))
+            )
           ),
-          h5(
-            "The map to the left looks at the minutes it takes to get from the center of each census tract to a specific location (i.e. downtown) using public transportation divided
-            by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
-            to no range and a small standard deviation."
-          )
-          ))
-          )
-        ),
+          
+          ##############COMMERCIAL CORRIDORS UI############
+          tabPanel(
+            "Commercial Corridors",
+            h4("Question:"),
+            h5(
+              "As you can see from the Physical Assets tab, non-residential assets are concentration downtown and spattered around the city.
+              Is there value to concentrating investment and planning efforts in commercial corridors? Does this organization of a corridor
+              result in healthier surrounding neighborhoods?"
+            ),
+            fixedRow(
+              column(
+                3,
+                h4("Identifying Existing Corridors:"),
+                h5(
+                  "The dots identified in the map to the right represent the assets included in commercial corridors drawn by Commissioner
+                  Paul Driscoll. According to this map, there are 17 commercial corridors throughout Syracuse."
+                ),
+                h4("HOW TO:"),
+                h5(
+                  div("Dots in green represent commercial and public assets ", style = "color:green")
+                ),
+                h5(
+                  div("Dots in orange represent residential assets", style = "color:orange")
+                ),
+                h5("Dots in white represent vacant assets"),
+                h5(
+                  div("Dots in yellow represent mixed-use assets", style = "color:gold")
+                ),
+                h5(tags$b(
+                  "Click on dots to identify their corridor's name."
+                )),
+                h4("Observations:"),
+                h5(
+                  "Almost immediately, the team questioned whether the boundaries were accepted across the community. Are there other set
+                  boundaries that may be more widely accepted? The City's Future Land Use Map may be a good place to look into? It could also
+                  be that many of our corridors lack a strong enough identity to be clearly defined or understood by the community?"
+                )
+                ),
+              column(9, leafletOutput("CCAssetMap", height = "500px"))
+                ),
+            fixedRow(
+              column(
+                3,
+                h4("Corridor Breakdowns:"),
+                h5(
+                  "My thought with the below graphics was that in order to understand what makes a commercial corridor an asset to a
+                  community, we need to know what makes a commerical corridor... That is to say - what are the land uses within each
+                  corridor? What is the diversity of uses? What is the density of the corridor? Are there trends across corridors?
+                  Which corridors are 'successful' and are its characteristics?"
+                ),
+                selectInput(
+                  inputId = "CCorridor",
+                  label = "Select a Corridor to see its breakdown",
+                  choices = featureList7
+                ),
+                h4("Observations:"),
+                h5(
+                  "As to be expected, neighborhoods that struggle with high poverty rates and low employment also have higher rates of vacancy
+                  in their adjacent corridors."
+                ),
+                h5(
+                  "Additionally, corridors with a high proportion of residential properties show lower rates of vacancy and surrounding poverty
+                  when the corridor has a shorter length. Longer corridors that also have a high proportion of residential (such as Southside Salina, Wolf and Lodi),
+                  also show higher rates of vacancy and surrounding poverty."
+                ),
+                h5(
+                  "Finally, The analysis to the right and below does not necessarily indicate how a corridor influences its surrounding community.
+                  'Erie Blvd E' has very little vacancy and is relatively dense but how has it impacted its surrounded neighborhoods. Although this
+                  research was interesting and fun, unfortunately I don't think any fruitful conclusions have been drawn."
+                )
+                ),
+              column(9, plotlyOutput("CCVarietyPlot", height = "600px"))
+                ),
+            fixedRow(
+              column(8, plotlyOutput("CCDensityPlot", height = "500px")),
+              column(
+                4,
+                h6(
+                  "The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total length (in feet) of that corridor."
+                ),
+                numericInput("DensityObs1", "# of rows:", 7),
+                tableOutput("CCLengthRatio")
+              )
+            ),
+            fixedRow(
+              column(8, plotlyOutput("CCDensityPlot2",  height = "500px")),
+              column(
+                4,
+                h6(
+                  "The ratio to the left looks at the total # of assets in each corridor (not including vacant assets) over the total # of parcels (including vacant parcels & lots) in that corridor"
+                ),
+                numericInput("DensityObs2", "# of rows:", 7),
+                tableOutput("CCParcelRatio")
+              )
+            )
+                ),
+          
+          ##########DIS/INVESTMENT UI#############
+          tabPanel(
+            "Dis/Investment",
+            h4("Question:"),
+            h5(
+              "Where does the money go (private vs public)? What is the impact of investment/disinvestment on neighborhoods?"
+            ),
+            fixedRow(column(
+              3,
+              h4("Property Value Observations:"),
+              h5(
+                "Cassie Schmitt's analysis of Zillow data has brought forth some interesting observations and, like any good analysis,
+                follow-up questions. Below is a summary of the observations/questions made by the team."
+              ),
+              h5(
+                "In 1996, property values across the city were much closer together in value then they are today. What is the change
+                in property range from year to year?"
+              ),
+              h5(
+                "All neighborhoods have seen some kind of increase in home value over the last 20 years. What has been the percentage
+                change over time? How does this compare to national and state trends? How does the inflation rate come in to play?"
+              ),
+              h5(
+                "Take into account the housing crash – it looks like the most valuable properties are the ones that took the biggest
+                hit, where the homes in neighborhoods with less value did not have a price reduction – they are generally level. What
+                are the events that have impacted property values?"
+              ),
+              h5("What are the boundaries for the neighborhoods Zillow defines?")
+              ),
+              column(9, fixedRow(
+                plotlyOutput("ZillowLongPlot", height = "500px")
+              ))),
+            fixedRow(column(
+              3,
+              h4("CDBG, HOME and Lead $ Observations:"),
+              h5(
+                "Lead dollars have been evenly distributed throughout the city. However, other projects seem more focused in specific areas"
+              )
+            ),
+            column(
+              9,
+              selectInput(
+                inputId = "Census2",
+                label = "Census Information",
+                choices = featureList3
+              ),
+              plotlyOutput("PlotInvested", height = "500px")
+            )),
+            fixedRow(tags$ol(
+              "HOW TO:",
+              h5(
+                "Step 1: The drop down labeled 'Accessible Properties' displays points where the City or a City partner currently has or has potential to take parcel ownership. Therefore, there is potential for a place based project."
+              ),
+              h5(
+                "Step 2: The drop down labeled 'Inaccessible Properties' displays points where the City would struggle to gain access to a parcel."
+              ),
+              h5(
+                "Step 3: The drop down labeled 'Census Information' colors the map with data from the ACS 2014 5 Year Estimate. For example if 'Median Income (in dollars)' is selected, the map will shade by census tract. Be mindful of the map's legend and click the gold houses to identify census tract #s."
+              ),
+              h5(
+                "Step 4: The drop down labeled 'Property Investments' show where the City or a City partner has invested CDBG, HOME or Lead money over the past 5+ years (more detailed metadata to come). Click the purple points to identify the grant dollar amount invested in the property."
+              ),
+              h5(
+                "Step 5: Dont forget to click over golden houses and purple dots for more detailed info!"
+              )
+            )),
+            fixedRow(column(
+              4,
+              selectInput(
+                inputId = "Accessible",
+                label = "Accessible Properties",
+                choices = featureList1
+              )
+            ),
+            column(
+              4,
+              selectInput(
+                inputId = "Inaccessible",
+                label = "Inaccessible Properties",
+                choices = featureList4
+              )
+            )),
+            fixedRow(column(
+              4,
+              selectInput(
+                inputId = "Census",
+                label = "Census Information",
+                choices = featureList3
+              )
+            ),
+            column(
+              4,
+              selectInput(
+                inputId = "Investment",
+                label = "Property Investments",
+                choices = featureList5
+              )
+            )),
+            fixedRow(column(
+              12, leafletOutput("AccessMap1", height = "700px")
+            ))
+              )
+              )
+            ),
+      
+      
+      ##############COMMUNITY CONNECTION UI##############
+      tabPanel(
+        h4("Community Connection"),
+        tabsetPanel(
+          tabPanel(
+            "Tab Overview",
+            h4("Problem Definition"),
+            tags$ol(tags$li(
+              c(
+                "Problem Definition: Throughout the interview process, service providers and constituents alike say that there
+                is no lack of services in Syracuse, the problem lies instead with connecting people to those services.
+                When we ask how constituents hear about available services, the answer has been almost exclusively 'word-
+                of-mouth.' Additionally, interviewees have listed transportation to services as being problematic.
+                An additional theme is that service providers do not 'meet people where they are at' and instead
+                expect people to travel to them. Is there a 'service connection system' in Syracuse? Is it effective?"
+              )
+              ),
+              tags$li(
+                c(
+                  "Leads: Samantha Linnett and I met with Cheryl Giarrusso of Central New York's 211. They have offered to share call
+                  data and service provider data."
+                )
+                )),
+            h4("Data Governance & Maturity"),
+            tags$ol(
+              tags$li(
+                "Transportation: Bus Transits: https://maps.bts.dot.gov/arcgis/apps/webappviewer/index.html?id=b06d206bcae840d58fb3d0af36e7ee16"
+              ),
+              tags$li(
+                "Available Services: Over the duration of CNY 211's 30 years, they have tracked and logged any service provider within the
+                5 contiguous counties. They are going to provide the full list of programs/services throughout the city of Syracuse and Onondaga
+                County, their hours of operations, the categories of services they provide, address and the # of referrals per service."
+              ),
+              tags$li(
+                "Calls: CNY 211 has offered to provide their call data at the zip code level for Syracuse: # of calls, subject of the call,
+                time and date of the call. We are also looking into police call data and cityline call data."
+              )
+              )
+            ),
+          
+          ################NUMBER OF CENTRO UI##############
+          tabPanel(
+            "# of Centro Stops",
+            h4("Question:"),
+            h5(
+              "In countless interviews, the issue of transporation has come up. Are there enough public transit stops in Syracuse?"
+            ),
+            fixedRow(column(
+              3,
+              h4("Description:"),
+              h5(HTML(
+                paste(
+                  "Each ",
+                  tags$span(style = "color:green", "green "),
+                  "dot in the map to the left shows a Centro
+                  bus transit stop within Onondaga County. The data was downloaded from 'The National Transit Map'.
+                  Scroll in and out to see the entire County.",
+                  sep = ""
+                )
+              )),
+              h4("Observations:"),
+              h5(
+                "At a glance, these data show a dense system of Centro stops throughout Syracuse (the County seems more sparse).
+                The map directly below colors each census tract by the # of transit stops within it. There is a large range but this
+                is most likely impacted by size (i.e. Census tract 46 / Meadowbrook has the highest # of transit stops but is also one
+                of the largest census tracts in the city and census tract 3 only has 10 transit stops but covers a very small area)."
+              ),
+              h5(
+                "Although the maps and graphic to the right and below show an extensive physical coverage of Centro transit stops
+                throughout the city, that does not necessarily mean that the public transit system is efficient. The real
+                questions that we need answers to are: How long does it take to get from one point to the next? How much does this
+                differ from having a car?"
+              )
+              ),
+              column(
+                9, leafletOutput("TransportationMap1", height = "500px")
+              )),
+            fixedRow(column(
+              4,
+              selectInput(
+                inputId = "TransitCensus",
+                label = "Census Level Data",
+                choices = featureList8
+              )
+            )),
+            fixedRow(column(
+              6,
+              h4(tags$b("# of Transit Stops by Census Tract")),
+              leafletOutput("TransportationMap2", height = "700px")
+            ),
+            column(
+              6, plotlyOutput("TransportationGraph1", height = "700px")
+            ))
+              ),
+          ##############PUBLIC TRANSIT EFFICIENCY UI###############
+          tabPanel(
+            "Public Transit Efficiency",
+            h4("Question:"),
+            h5(
+              "How long does it take to get from one point to the next? How much does this differ from having a car?"
+            ),
+            h4("Description:"),
+            h5(
+              "Time and distance estimates taken from Google Maps (https://www.google.com/maps). Data below are time and mile
+              estimates for 12-19-2015 (a weekday with light predicted snow)."
+            ),
+            h5(
+              "Comparing time spent in public transit vs time spent in a car is not a perfect measure of public transit
+              efficiency. However, based on the data available (Google maps), it is a pretty good description of the additional
+              time needed in a day for transportation for someone who does not own a car."
+            ),
+            fixedRow(column(
+              12,
+              selectInput(
+                "DrivingHour",
+                "Hour of the Day:",
+                choices = list(
+                  EarlyMorning = c(
+                    "12:00 a.m.",
+                    "1:00 a.m.",
+                    "2:00 a.m.",
+                    "3:00 a.m.",
+                    "4:00 a.m.",
+                    "5:00 a.m."
+                  ),
+                  Morning = c(
+                    "6:00 a.m.",
+                    "7:00 a.m.",
+                    "8:00 a.m.",
+                    "9:00 a.m.",
+                    "10:00 a.m.",
+                    "11:00 a.m."
+                  ),
+                  Afternoon = c(
+                    "12:00 p.m.",
+                    "1:00 p.m.",
+                    "2:00 p.m.",
+                    "3:00 p.m.",
+                    "4:00 p.m.",
+                    "5:00 p.m."
+                  ),
+                  Evening = c(
+                    "6:00 p.m.",
+                    "7:00 p.m.",
+                    "8:00 p.m.",
+                    "9:00 p.m.",
+                    "10:00 p.m.",
+                    "11:00 p.m."
+                  )
+                ),
+                multiple = FALSE
+              )
+            )),
+            fixedRow(column(
+              6,
+              h4(
+                "Mapping the minutes per mile from the center of each Census Tract to Downtown using PERSONAL VEHICLE",
+                style = "color:green"
+              )
+            ),
+            column(
+              6,
+              h4(
+                "Mapping the minutes per mile from the center of each Census Tract to Downtown using a PUBLIC TRANSPORTATION",
+                style = "color:green"
+              )
+            )),
+            fixedRow(column(
+              6,
+              leafletOutput("TransportationMap3", height = "700px")
+            ),
+            column(
+              6, leafletOutput("TransportationMap4", height = "700px")
+            )),
+            h5(
+              "The map to the left looks at the minutes it takes to get from the center of each census tract to a specific location (i.e. downtown) using public transportation divided
+              by the # of miles from the center of each census tract to a specific location (i.e. downtown). If services are evenly distributed throughout the city, there should be little
+              to no range and a small standard deviation."
+            )
+            )
+            )
+            ),
     
     ##############DOCE UI############
     tabPanel(h4("DOCE"),
@@ -2184,7 +2221,21 @@ server <- function(input, output, session) {
       )
       
       TransportMap3 <- data.frame(Dat.Driving.Clean$NAME,
-                                 Dat.Driving.Clean[,input$DrivingHour])
+                                  Dat.Driving.Clean[, input$DrivingHour],
+                                  Dat.Driving.Clean$lon,
+                                  Dat.Driving.Clean$lat)
+      TransportMap4 <- data.frame(Dat.Transit.Clean$NAME,
+                                  Dat.Transit.Clean[, input$DrivingHour],
+                                  Dat.Transit.Clean$lon,
+                                  Dat.Transit.Clean$lat)
+      #TransportMap5 <- data.frame(Dat.Driving.Clean$NAME,
+       #                           Dat.Driving.Clean[, input$DrivingHour],
+        #                          Dat.Driving.Clean$lon,
+         #                         Dat.Driving.Clean$lat)
+      #TransportMap6 <- data.frame(Dat.Driving.Clean$NAME,
+       #                           Dat.Driving.Clean[, input$DrivingHour],
+        #                          Dat.Driving.Clean$lon,
+         #                         Dat.Driving.Clean$lat)
       
       # Add column names
       colnames(plot1.df) <-
@@ -2195,7 +2246,8 @@ server <- function(input, output, session) {
       colnames(censusInfo2) <- c("x", "CensusTract3", "lon", "lat")
       colnames(censusInfo3) <- c("CensusTract3", "lon", "lat")
       colnames(censusInfo4) <- c("x", "CensusTract3", "lon", "lat")
-      colnames(TransportMap3) <- c("CensusTract3", "x")
+      colnames(TransportMap3) <- c("CensusTract3", "x", "lon", "lat")
+      colnames(TransportMap4) <- c("CensusTract3", "x", "lon", "lat")
       
       #Merge shapefile with ACS 2014 data
       shape.asset <-
@@ -2221,6 +2273,12 @@ server <- function(input, output, session) {
       shape.transportmap3 <-
         merge(shape.Syracuse,
               TransportMap3,
+              by.x = "NAME",
+              by.y = "CensusTract3")
+      
+      shape.transportmap4 <-
+        merge(shape.Syracuse,
+              TransportMap4,
               by.x = "NAME",
               by.y = "CensusTract3")
       
@@ -2320,7 +2378,7 @@ server <- function(input, output, session) {
       
       output$AssetMap1 <- renderLeaflet({
         NonResSubset <-
-          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
+          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1, ]
         
         leaflet(shape.asset) %>%
           setView(lng = -76.1474,
@@ -2444,7 +2502,7 @@ server <- function(input, output, session) {
       })
       
       output$CCVarietyPlot <- renderPlotly({
-        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
+        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor, ]
         CCSubset$GeneralCategories <-
           as.character(CCSubset$GeneralCategories)
         CCSubset$Count <- 1
@@ -2480,13 +2538,13 @@ server <- function(input, output, session) {
       #########DIS/INVESTMENT SERVER####
       output$AccessMap1 <- renderLeaflet({
         accessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible, ]
         InaccessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible, ]
         ProblemSubset <-
-          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
+          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem,]
         Investment <-
-          Dat.Investment[Dat.Investment$Activity == input$Investment, ]
+          Dat.Investment[Dat.Investment$Activity == input$Investment,]
         
         leaflet(shape.access) %>%
           setView(lng = -76.1474,
@@ -2840,6 +2898,23 @@ server <- function(input, output, session) {
           )
       })
       
+      output$TransportationMap4 <- renderLeaflet({
+        leaflet(shape.transportmap4) %>%
+          setView(lng = -76.1474,
+                  lat = 43.0481,
+                  zoom = 12) %>%
+          addProviderTiles("CartoDB.Positron") %>%
+          addPolygons(
+            stroke = FALSE,
+            fillOpacity = 0.7,
+            smoothFactor = 0.5,
+            color = ~ colorNumeric("Greens", shape.transportmap4$x)(shape.transportmap4$x),
+            popup = paste("Minutes per Mile: ",
+                          shape.transportmap4$x)
+          )
+      })
+      
+      
       
       #########DOCE SERVER####
       output$CodeViolationPic <- renderImage({
@@ -2919,7 +2994,7 @@ server <- function(input, output, session) {
       #########BOTTLENECKS SERVER##################
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
-          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
+          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect ,]
         
         # Dropping months with zero complaints
         ncomps <- 0
@@ -2969,7 +3044,7 @@ server <- function(input, output, session) {
       
       output$violationHeatmap <- renderD3heatmap({
         dat.VHM3 <-
-          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE),]
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
         d3heatmap(
           dat.VHM3,
           colors = "BuGn",
