@@ -104,17 +104,10 @@ Dat.ZillowChange <-
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Zillow_PercentChange.csv"
   )
 
-#API Key for transportation time and distance
-#APIkey <- ('AIzaSyCoHparOPrgG4hU6QFUR4yEOkkfj53IcZ0')
-
-#Shapefile load (problematic atm)
-##Converting to a jso
-#download.file("https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/commcorridors.geojson", "commcorridors.geojson")
-#commcorridors <- readShapePoly(fn="AssetParcelCounts", proj4string=CRS("+proj=longlat +datum=WGS84"))
-#commcorridors <- spTransform(commcorridors, CRS("+proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0"))
-#geojson_write(commcorridors, geometry="polygon", file="commcorridors.geojson" )
-
-#commcorridors <- geojson_read("commcorridors.geojson", method="local", what="sp" )
+Dat.211 <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/211Data_LatLon.csv"
+  )
 
 #Colors for Dat.NonRes
 Dat.NonRes$Color <-
@@ -129,8 +122,8 @@ Dat.AssetPercent[, c(2:28, 31:34)] <-
   round(100 * Dat.AssetPercent[, c(2:28, 31:34)], 2)
 
 #Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55), ]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55), ]
+Dat.AssetCount <- Dat.AssetCount[c(1:55),]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
 
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
@@ -411,7 +404,7 @@ shape.Syracuse <-
                  shape.Tracts$NAME == 60 |
                  shape.Tracts$NAME == 61.01 |
                  shape.Tracts$NAME == 61.02 |
-                 shape.Tracts$NAME == 61.03, ]
+                 shape.Tracts$NAME == 61.03,]
 
 
 nhoodIcon <- makeIcon(
@@ -424,9 +417,9 @@ nhoodIcon <- makeIcon(
 
 #Asset Density Sorting
 Dat.AssetDensity <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength), ]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
 Dat.AssetDensity2 <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel), ]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
 Dat.DensityLength <- Dat.AssetDensity[, c(1, 3, 7, 4)]
 colnames(Dat.DensityLength) <-
   c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
@@ -476,7 +469,7 @@ Dat.Violations$Violation.Date <-
 
 complaint.date <- Dat.Violations$Violation.Date
 post.2012 <- complaint.date > "2011-12-31"
-Dat.Violations <- Dat.Violations[post.2012 , ]
+Dat.Violations <- Dat.Violations[post.2012 ,]
 complaint.date <- Dat.Violations$Violation.Date
 
 month.year <- cut(complaint.date, breaks = "month")
@@ -574,7 +567,7 @@ Dat.CleanedViolations1 <-
         by.x = "Violation.Description",
         by.y = "Violation.Description")
 Dat.CleanedViolations2 <-
-  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99, ]
+  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99,]
 Dat.CleanedViolations2$Count <- 1
 dat.VHM1 <-
   as.data.frame(
@@ -674,7 +667,7 @@ TransitCounts$CensusTract1 <-
   as.character(TransitCounts$CensusTract1)
 
 #Sort Transit Data
-TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount), ]
 TransitCounts$CT <-
   factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
@@ -1101,7 +1094,7 @@ TransportTable2 <-
                       "Average Minutes - Transit",
                       "Average Minutes - Driving")]
 TransportTable2 <-
-  TransportTable2[order(TransportTable2$`Average Minutes - Transit`, decreasing = TRUE), ]
+  TransportTable2[order(TransportTable2$`Average Minutes - Transit`, decreasing = TRUE),]
 
 #BUILDING Dat.Driving
 Dat.Driving <- Dat.TransprotMerge[, c(2, 8:55)]
@@ -1307,7 +1300,7 @@ TransportTable1 <-
 TransportTable1 <-
   TransportTable1[, c("Census Tract", "Average MPM - Transit", "Average MPM - Driving")]
 TransportTable1 <-
-  TransportTable1[order(TransportTable1$`Average MPM - Transit`, decreasing = TRUE), ]
+  TransportTable1[order(TransportTable1$`Average MPM - Transit`, decreasing = TRUE),]
 
 #Building Comparison Tables
 #Building Difference in total # of minutes transit total time - driving total time
@@ -2302,7 +2295,20 @@ ui <- fluidPage(# Set theme
           column(
             6, leafletOutput("TransportationMap6", height = "700px")
           ))
-          )
+          ),
+        #############ACCESS TO SERVICES UI###########
+        tabPanel(
+          "Access to Services",
+          h4("Question:"),
+          h5(
+            "What services currently exist in the city of Syracuse? Where do they exist? Who do they serve? How accessible are they?"
+          ),
+          h4("Map of 211's listed services located within the city of Syracuse"),
+          fixedRow(column(
+            12,
+            leafletOutput("ServicesMap1", height = "700px")
+          ))
+        )
           )
           ),
     
@@ -2795,7 +2801,7 @@ server <- function(input, output, session) {
       
       output$AssetMap1 <- renderLeaflet({
         NonResSubset <-
-          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1, ]
+          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
         
         leaflet(shape.asset) %>%
           setView(lng = -76.1474,
@@ -2914,7 +2920,7 @@ server <- function(input, output, session) {
       })
       
       output$CCVarietyPlot <- renderPlotly({
-        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor, ]
+        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
         CCSubset$GeneralCategories <-
           as.character(CCSubset$GeneralCategories)
         CCSubset$Count <- 1
@@ -2950,13 +2956,13 @@ server <- function(input, output, session) {
       #########DIS/INVESTMENT SERVER####
       output$AccessMap1 <- renderLeaflet({
         accessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible, ]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
         InaccessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible, ]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
         ProblemSubset <-
-          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem,]
+          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
         Investment <-
-          Dat.Investment[Dat.Investment$Activity == input$Investment,]
+          Dat.Investment[Dat.Investment$Activity == input$Investment, ]
         
         leaflet(shape.access) %>%
           setView(lng = -76.1474,
@@ -3539,6 +3545,23 @@ server <- function(input, output, session) {
         head(TransportTable2, n = input$TransportObs2)
       })
       
+      ################ACCESS TO SERVICES SERVER####################
+      output$ServicesMap1 <- renderLeaflet({
+        leaflet(shape.Syracuse) %>%
+          setView(lng = -76.1474,
+                  lat = 43.0481,
+                  zoom = 12) %>%
+          addProviderTiles("CartoDB.Positron") %>%
+          addCircleMarkers(
+            lng = Dat.211$lat,
+            lat = Dat.211$lon,
+            radius = 3,
+            color = "palevioletred",
+            popup = paste(Dat.211$Name, ": ",
+                          Dat.211$AgencyDescription)
+          )
+      })
+      
       
       #########DOCE SERVER####
       output$CodeViolationPic <- renderImage({
@@ -3618,7 +3641,7 @@ server <- function(input, output, session) {
       #########BOTTLENECKS SERVER##################
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
-          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect ,]
+          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
         
         # Dropping months with zero complaints
         ncomps <- 0
@@ -3668,7 +3691,7 @@ server <- function(input, output, session) {
       
       output$violationHeatmap <- renderD3heatmap({
         dat.VHM3 <-
-          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE),]
         d3heatmap(
           dat.VHM3,
           colors = "BuGn",
