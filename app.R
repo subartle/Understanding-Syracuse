@@ -109,6 +109,16 @@ Dat.211 <-
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/211Data_LatLon.csv"
   )
 
+Dat.Permits <-
+  read.csv(
+    "C:/Users/sbartlett/Documents/Application/Understanding-Syracuse/Cleaned/PermitsSummary.csv"
+  )
+
+Dat.PermitsbyDate <-
+  read.csv(
+    "C:/Users/sbartlett/Documents/Application/Understanding-Syracuse/Cleaned/PermitsSummarybyDate.csv"
+  )
+
 #Colors for Dat.NonRes
 Dat.NonRes$Color <-
   ifelse(Dat.NonRes$Status == "Vacant", "red", "black")
@@ -122,8 +132,8 @@ Dat.AssetPercent[, c(2:28, 31:34)] <-
   round(100 * Dat.AssetPercent[, c(2:28, 31:34)], 2)
 
 #Cut off Totals
-Dat.AssetCount <- Dat.AssetCount[c(1:55),]
-Dat.AssetPercent <- Dat.AssetPercent[c(1:55),]
+Dat.AssetCount <- Dat.AssetCount[c(1:55), ]
+Dat.AssetPercent <- Dat.AssetPercent[c(1:55), ]
 
 #as numeric
 Dat.Accessibility$lat <- as.numeric(Dat.Accessibility$lat)
@@ -404,7 +414,7 @@ shape.Syracuse <-
                  shape.Tracts$NAME == 60 |
                  shape.Tracts$NAME == 61.01 |
                  shape.Tracts$NAME == 61.02 |
-                 shape.Tracts$NAME == 61.03,]
+                 shape.Tracts$NAME == 61.03, ]
 
 
 nhoodIcon <- makeIcon(
@@ -417,9 +427,9 @@ nhoodIcon <- makeIcon(
 
 #Asset Density Sorting
 Dat.AssetDensity <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength),]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioLength), ]
 Dat.AssetDensity2 <-
-  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel),]
+  Dat.AssetDensity[order(Dat.AssetDensity$RatioParcel), ]
 Dat.DensityLength <- Dat.AssetDensity[, c(1, 3, 7, 4)]
 colnames(Dat.DensityLength) <-
   c("Corridor", "Occupied Assets", "Length (ft)", "# Asset/Length")
@@ -469,7 +479,7 @@ Dat.Violations$Violation.Date <-
 
 complaint.date <- Dat.Violations$Violation.Date
 post.2012 <- complaint.date > "2011-12-31"
-Dat.Violations <- Dat.Violations[post.2012 ,]
+Dat.Violations <- Dat.Violations[post.2012 , ]
 complaint.date <- Dat.Violations$Violation.Date
 
 month.year <- cut(complaint.date, breaks = "month")
@@ -567,7 +577,7 @@ Dat.CleanedViolations1 <-
         by.x = "Violation.Description",
         by.y = "Violation.Description")
 Dat.CleanedViolations2 <-
-  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99,]
+  Dat.CleanedViolations1[Dat.CleanedViolations1$Count > 99, ]
 Dat.CleanedViolations2$Count <- 1
 dat.VHM1 <-
   as.data.frame(
@@ -667,7 +677,7 @@ TransitCounts$CensusTract1 <-
   as.character(TransitCounts$CensusTract1)
 
 #Sort Transit Data
-TransitCounts <- TransitCounts[order(TransitCounts$TransitCount), ]
+TransitCounts <- TransitCounts[order(TransitCounts$TransitCount),]
 TransitCounts$CT <-
   factor(TransitCounts$CensusTract1, levels = TransitCounts$CensusTract1[order(TransitCounts$TransitCount)])
 
@@ -1094,7 +1104,7 @@ TransportTable2 <-
                       "Average Minutes - Transit",
                       "Average Minutes - Driving")]
 TransportTable2 <-
-  TransportTable2[order(TransportTable2$`Average Minutes - Transit`, decreasing = TRUE),]
+  TransportTable2[order(TransportTable2$`Average Minutes - Transit`, decreasing = TRUE), ]
 
 #BUILDING Dat.Driving
 Dat.Driving <- Dat.TransprotMerge[, c(2, 8:55)]
@@ -1300,7 +1310,7 @@ TransportTable1 <-
 TransportTable1 <-
   TransportTable1[, c("Census Tract", "Average MPM - Transit", "Average MPM - Driving")]
 TransportTable1 <-
-  TransportTable1[order(TransportTable1$`Average MPM - Transit`, decreasing = TRUE),]
+  TransportTable1[order(TransportTable1$`Average MPM - Transit`, decreasing = TRUE), ]
 
 #Building Comparison Tables
 #Building Difference in total # of minutes transit total time - driving total time
@@ -1503,6 +1513,17 @@ Shape.ComparisonMergeMPM <-
         by.x = "NAME",
         by.y = "NAME")
 
+#Permitting Cleaning
+Dat.PermitsbyDate$Date <-
+  as.Date(Dat.PermitsbyDate$Date, "%m/%d/%Y")
+Dat.PermitsbyDate$Valuation <-
+  as.numeric(Dat.PermitsbyDate$Valuation)
+Dat.PermitsbyDate <-
+  as.data.frame(tapply(Dat.PermitsbyDate$Valuation, Dat.PermitsbyDate$Date, FUN = sum))
+colnames(Dat.PermitsbyDate) <- "Valuation"
+
+Dat.PermitsbyDate <-
+  Dat.PermitsbyDate[Dat.PermitsbyDate$Valuation > 0, ]
 
 # ui.R definition
 ui <- fluidPage(# Set theme
@@ -1856,45 +1877,11 @@ ui <- fluidPage(# Set theme
           )
               ),
         
-        ##########DIS/INVESTMENT UI#############
+        ##########PUBLIC INVESTMENT UI#############
         tabPanel(
-          "Dis/Investment",
+          "Public Investment",
           h4("Question:"),
-          h5(
-            "Where does the money go (private vs public)? What is the impact of investment/disinvestment on neighborhoods?"
-          ),
-          fixedRow(column(
-            3,
-            h4("Total Property Value Observations:"),
-            h5(
-              "Cassie Schmitt's analysis of Zillow data has brought forth some interesting observations and, like any good analysis,
-              follow-up questions. Below is a summary of the observations/questions made by the team."
-            ),
-            h5(
-              "In 1996, property values across the city were much closer together in value then they are today. What is the change
-              in property range from year to year?"
-            ),
-            h5(
-              "All neighborhoods have seen some kind of increase in home value over the last 20 years. What has been the percentage
-              change over time? How does this compare to national and state trends? How does the inflation rate come in to play?"
-            ),
-            h5(
-              "Take into account the housing crash – it looks like the most valuable properties are the ones that took the biggest
-              hit, where the homes in neighborhoods with less value did not have a price reduction – they are generally level. What
-              are the events that have impacted property values?"
-            ),
-            h5("What are the boundaries for the neighborhoods Zillow defines?")
-            ),
-            column(
-              9, plotlyOutput("ZillowLongPlot", height = "500px")
-            )),
-          fixedRow(column(
-            3,
-            h4("% Change in Property Value Observations:")
-          ),
-          column(
-            9, plotlyOutput("ZillowChangePlot", height = "500px")
-          )),
+          h5("Where do city dollars go? What is the impact of this investment?"),
           fixedRow(column(
             3,
             h4("CDBG, HOME and Lead $ Observations:"),
@@ -1963,6 +1950,64 @@ ui <- fluidPage(# Set theme
           )),
           fixedRow(column(
             12, leafletOutput("AccessMap1", height = "700px")
+          ))
+        ),
+        
+        ####################PRIVATE INVESTMENT UI##############
+        tabPanel(
+          "Private Investment",
+          h4("Question:"),
+          h5(
+            "Where does private investment happen? What is the impact of this investment?"
+          ),
+          fixedRow(column(
+            3,
+            h4("Total Property Value Observations:"),
+            h5(
+              "Cassie Schmitt's analysis of Zillow data has brought forth some interesting observations and, like any good analysis,
+              follow-up questions. Below is a summary of the observations/questions made by the team."
+            ),
+            h5(
+              "In 1996, property values across the city were much closer together in value then they are today. What is the change
+              in property range from year to year?"
+            ),
+            h5(
+              "All neighborhoods have seen some kind of increase in home value over the last 20 years. What has been the percentage
+              change over time? How does this compare to national and state trends? How does the inflation rate come in to play?"
+            ),
+            h5(
+              "Take into account the housing crash - it looks like the most valuable properties are the ones that took the biggest
+              hit, where the homes in neighborhoods with less value did not have a price reduction - they are generally level. What
+              are the events that have impacted property values?"
+            ),
+            h5("What are the boundaries for the neighborhoods Zillow defines?")
+            ),
+            column(
+              9, plotlyOutput("ZillowLongPlot", height = "500px")
+            )),
+          fixedRow(column(
+            3,
+            h4("% Change in Property Value Observations:")
+          ),
+          column(
+            9, plotlyOutput("ZillowChangePlot", height = "500px")
+          )),
+          fixedRow(column(
+            12, dygraphOutput("PrivateInvestmentGraph", height = "500px")
+          )),
+          fixedRow(column(
+            12,
+            sliderInput(
+              "range",
+              "Range of the total private investment in a property:",
+              min = 1,
+              max = 27000000,
+              value = c(1000000, 27000000),
+              width = "1000px"
+            )
+          )),
+          fixedRow(column(
+            12, leafletOutput("PrivateInvestmentMap", height = "500px")
           ))
             )
             )
@@ -2539,6 +2584,7 @@ server <- function(input, output, session) {
   # Observes the second feature input for a change
   observeEvent(
     c(
+      input$range,
       input$Input2,
       input$Input1,
       input$Census,
@@ -2801,7 +2847,7 @@ server <- function(input, output, session) {
       
       output$AssetMap1 <- renderLeaflet({
         NonResSubset <-
-          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1,]
+          Dat.NonRes[Dat.NonRes$Entity_Category == input$Input1, ]
         
         leaflet(shape.asset) %>%
           setView(lng = -76.1474,
@@ -2920,7 +2966,7 @@ server <- function(input, output, session) {
       })
       
       output$CCVarietyPlot <- renderPlotly({
-        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor,]
+        CCSubset <- Dat.CCAssets[Dat.CCAssets$Corridor == input$CCorridor, ]
         CCSubset$GeneralCategories <-
           as.character(CCSubset$GeneralCategories)
         CCSubset$Count <- 1
@@ -2953,16 +2999,16 @@ server <- function(input, output, session) {
       })
       
       
-      #########DIS/INVESTMENT SERVER####
+      #########PUBLIC INVESTMENT SERVER####
       output$AccessMap1 <- renderLeaflet({
         accessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible,]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Accessible, ]
         InaccessSubset <-
-          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible,]
+          Dat.Accessibility[Dat.Accessibility$Accessibility == input$Inaccessible, ]
         ProblemSubset <-
-          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem, ]
+          Dat.ProblemProps[Dat.ProblemProps$Problems == input$Problem,]
         Investment <-
-          Dat.Investment[Dat.Investment$Activity == input$Investment, ]
+          Dat.Investment[Dat.Investment$Activity == input$Investment,]
         
         leaflet(shape.access) %>%
           setView(lng = -76.1474,
@@ -3248,6 +3294,8 @@ server <- function(input, output, session) {
         })
         
         
+        
+        
         output$investClick <- renderPrint({
           dat.investhover <- event_data("plotly_selected", source = "subset")
           if (is.null(dat.investhover))
@@ -3258,6 +3306,34 @@ server <- function(input, output, session) {
           dat.investhover[c(3, 4, 5)]
         })
       })
+      
+      
+      ##############PRIVATE INVESTMENT SERVER##################
+      output$PrivateInvestmentGraph <- renderDygraph({
+        dygraph(Dat.PermitsbyDate) %>%
+          dyRangeSelector()
+      })
+      
+      output$PrivateInvestmentMap <- renderLeaflet({
+        Dat.Permits.Sub <-
+          Dat.Permits[c(
+            Dat.Permits$Sum.of.Valuation > input$range[[1]] &
+              Dat.Permits$Sum.of.Valuation < input$range[[2]]
+          ),]
+        
+        leaflet(Dat.Permits.Sub) %>%
+          setView(lng = -76.1474,
+                  lat = 43.0481,
+                  zoom = 12) %>%
+          addProviderTiles("CartoDB.Positron") %>%
+          addCircleMarkers(
+            lng = Dat.Permits.Sub$Average.of.lat,
+            lat = Dat.Permits.Sub$Average.of.lon,
+            color = "mediumseagreen"
+          )
+        
+      })
+      
       #########DOCE SERVER####
       output$CodeViolationPic <- renderImage({
         if (input$CodeViolationSelect == "Life of a Code Violation") {
@@ -3641,7 +3717,7 @@ server <- function(input, output, session) {
       #########BOTTLENECKS SERVER##################
       output$ComplaintGraph1 <- renderDygraph({
         dat.sub <-
-          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect , ]
+          Dat.Violations[Dat.Violations$Complaint.Status %in% input$ComplaintStatusSelect ,]
         
         # Dropping months with zero complaints
         ncomps <- 0
@@ -3691,7 +3767,7 @@ server <- function(input, output, session) {
       
       output$violationHeatmap <- renderD3heatmap({
         dat.VHM3 <-
-          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE),]
+          dat.VHM2[order(dat.VHM2[input$HeatMapSort], decreasing = TRUE), ]
         d3heatmap(
           dat.VHM3,
           colors = "BuGn",
