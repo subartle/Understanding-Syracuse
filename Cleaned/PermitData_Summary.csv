@@ -1,0 +1,161 @@
+Type,Year,Count of Type,Sum of Valuation,Size,Category,Color
+Antenna / Dish,2012,20,343400,2,Bus. & Res.,Orange
+Antenna / Dish,2013,22,416700,2,Bus. & Res.,Orange
+Antenna / Dish,2016,22,611000,2,Bus. & Res.,Orange
+Antenna / Dish,2015,24,738000,2,Bus. & Res.,Orange
+Antenna / Dish,2014,26,467868,2,Bus. & Res.,Orange
+Demolition,2013,88,1644342,3,Bus. & Res.,Orange
+Demolition,2012,93,1449325,3,Bus. & Res.,Orange
+Demolition,2014,125,2111740,3,Bus. & Res.,Orange
+Demolition,2016,132,2456525,3,Bus. & Res.,Orange
+Demolition,2015,166,2860075,3,Bus. & Res.,Orange
+Electric,2016,1009,27879065.75,5,Bus. & Res.,Orange
+Electric,2013,1220,23896872.08,5,Bus. & Res.,Orange
+Electric,2015,1257,29156941.49,5,Bus. & Res.,Orange
+Electric,2014,1310,24061339.93,5,Bus. & Res.,Orange
+Electric,2012,1480,46287107,5,Bus. & Res.,Orange
+Electric (Meter Set),2012,5,1100,1,Bus. & Res.,Orange
+Electric (Meter Set),2013,143,40956,3,Bus. & Res.,Orange
+Electric (Meter Set),2016,197,53981,3,Bus. & Res.,Orange
+Electric (Meter Set),2014,210,72127,4,Bus. & Res.,Orange
+Electric (Meter Set),2015,239,58208,4,Bus. & Res.,Orange
+Elevator,2012,29,3073227,2,Bus. & Res.,Orange
+Elevator,2016,31,1462498,2,Bus. & Res.,Orange
+Elevator,2014,33,1219970,2,Bus. & Res.,Orange
+Elevator,2015,35,2177522,2,Bus. & Res.,Orange
+Elevator,2013,47,4800229,2,Bus. & Res.,Orange
+Fire Alarm,2014,133,5608994.21,3,Bus. & Res.,Orange
+Fire Alarm,2015,142,3278853,3,Bus. & Res.,Orange
+Fire Alarm,2016,148,8149263.17,3,Bus. & Res.,Orange
+Fire Alarm,2013,183,12951707,3,Bus. & Res.,Orange
+Fire Alarm,2012,227,6323707,4,Bus. & Res.,Orange
+Footing / Foundation,2014,1,30000,1,Bus. & Res.,Orange
+Footing / Foundation,2016,1,2116550,1,Bus. & Res.,Orange
+Footing / Foundation,2013,2,700000,1,Bus. & Res.,Orange
+Footing / Foundation,2012,5,301300,1,Bus. & Res.,Orange
+Footing / Foundation,2015,7,2506108,1,Bus. & Res.,Orange
+"Misc.(deck, fence,ramp)",2014,172,587730.36,3,Bus. & Res.,Orange
+"Misc.(deck, fence,ramp)",2015,172,582967.96,3,Bus. & Res.,Orange
+"Misc.(deck, fence,ramp)",2016,218,764533.88,4,Bus. & Res.,Orange
+"Misc.(deck, fence,ramp)",2013,303,3204279,4,Bus. & Res.,Orange
+"Misc.(deck, fence,ramp)",2012,306,912957,4,Bus. & Res.,Orange
+Security Alarm,2016,14,139406.1,2,Bus. & Res.,Orange
+Security Alarm,2015,29,117796.1,2,Bus. & Res.,Orange
+Security Alarm,2014,65,86950.13,3,Bus. & Res.,Orange
+Security Alarm,2012,228,348796.75,4,Bus. & Res.,Orange
+Security Alarm,2013,242,174638.04,4,Bus. & Res.,Orange
+Site Work,2015,35,9300809,2,Bus. & Res.,Orange
+Site Work,2016,40,14870835,2,Bus. & Res.,Orange
+Site Work,2013,44,7414867,2,Bus. & Res.,Orange
+Site Work,2012,48,12560159,2,Bus. & Res.,Orange
+Site Work,2014,48,13134694,2,Bus. & Res.,Orange
+Sprinkler,2012,345,3819403,4,Bus. & Res.,Orange
+Sprinkler,2016,443,4641494.21,4,Bus. & Res.,Orange
+Sprinkler,2015,504,4738031.26,4,Bus. & Res.,Orange
+Sprinkler,2014,505,3883193.02,4,Bus. & Res.,Orange
+Sprinkler,2013,507,5842743,4,Bus. & Res.,Orange
+Tank,2012,8,342660,1,Bus. & Res.,Orange
+Tank,2013,10,135900,1,Bus. & Res.,Orange
+Tank,2014,10,315019,1,Bus. & Res.,Orange
+Tank,2016,18,163413,2,Bus. & Res.,Orange
+Tank,2015,21,217425,2,Bus. & Res.,Orange
+Com. New Building,2013,7,4722005,1,Business,Red
+Com. New Building,2015,8,19206000,1,Business,Red
+Com. New Building,2016,12,45288500,2,Business,Red
+Com. New Building,2012,13,32250658,2,Business,Red
+Com. New Building,2014,18,43747010,2,Business,Red
+Com. Reno/Rem/Chg Occ,2016,355,94824287,4,Business,Red
+Com. Reno/Rem/Chg Occ,2014,393,73064350.25,4,Business,Red
+Com. Reno/Rem/Chg Occ,2013,407,85490173,4,Business,Red
+Com. Reno/Rem/Chg Occ,2015,419,92832647.27,4,Business,Red
+Com. Reno/Rem/Chg Occ,2012,495,144416300,4,Business,Red
+HVAC/Mechanical,2016,379,25343349.19,4,Business,Red
+HVAC/Mechanical,2012,420,30018856,4,Business,Red
+HVAC/Mechanical,2015,473,24035412.16,4,Business,Red
+HVAC/Mechanical,2014,547,23026865.55,4,Business,Red
+HVAC/Mechanical,2013,565,20691204,4,Business,Red
+Loading Zone (Business),2012,0,0,0,Business,Red
+Loading Zone (Business),2013,0,0,0,Business,Red
+Loading Zone (Business),2014,24,0,2,Business,Red
+Loading Zone (Business),2016,25,0,2,Business,Red
+Loading Zone (Business),2015,51,0,3,Business,Red
+Sign,2012,58,325572,3,Business,Red
+Sign,2014,62,283179,3,Business,Red
+Sign,2016,62,640167.46,3,Business,Red
+Sign,2013,74,251369,3,Business,Red
+Sign,2015,77,764779.23,3,Business,Red
+Block Party (Business),2012,0,0,0,Community Space,Green
+Block Party (Business),2013,0,0,0,Community Space,Green
+Block Party (Business),2015,0,0,0,Community Space,Green
+Block Party (Business),2014,2,0,1,Community Space,Green
+Block Party (Business),2016,2,0,1,Community Space,Green
+Block Party (Residential),2012,1,0,1,Community Space,Green
+Block Party (Residential),2013,1,0,1,Community Space,Green
+Block Party (Residential),2015,1,0,1,Community Space,Green
+Block Party (Residential),2016,1,0,1,Community Space,Green
+Block Party (Residential),2014,2,0,1,Community Space,Green
+Curb Cut,2014,4,0,1,Community Space,Green
+Curb Cut,2016,5,0,1,Community Space,Green
+Curb Cut,2015,7,0,1,Community Space,Green
+Curb Cut,2013,11,0,2,Community Space,Green
+Curb Cut,2012,27,0,2,Community Space,Green
+Encroach (Deminimus),2012,0,0,0,Community Space,Green
+Encroach (Deminimus),2013,0,0,0,Community Space,Green
+Encroach (Deminimus),2014,0,0,0,Community Space,Green
+Encroach (Deminimus),2016,0,0,0,Community Space,Green
+Encroach (Deminimus),2015,5,0,1,Community Space,Green
+Encroach (Major),2012,0,0,0,Community Space,Green
+Encroach (Major),2013,0,0,0,Community Space,Green
+Encroach (Major),2014,0,0,0,Community Space,Green
+Encroach (Major),2016,18,0,2,Community Space,Green
+Encroach (Major),2015,19,0,2,Community Space,Green
+Encroachment (Converted),2015,0,0,0,Community Space,Green
+Encroachment (Converted),2016,0,0,0,Community Space,Green
+Encroachment (Converted),2013,7,0,1,Community Space,Green
+Encroachment (Converted),2014,9,0,1,Community Space,Green
+Encroachment (Converted),2012,11,0,2,Community Space,Green
+Liability Waiver,2015,30,0,2,Community Space,Green
+Liability Waiver,2016,38,0,2,Community Space,Green
+Liability Waiver,2013,45,0,2,Community Space,Green
+Liability Waiver,2014,45,0,2,Community Space,Green
+Liability Waiver,2012,46,0,2,Community Space,Green
+Parking Meter Rental,2012,0,0,0,Community Space,Green
+Parking Meter Rental,2013,0,0,0,Community Space,Green
+Parking Meter Rental,2014,0,0,0,Community Space,Green
+Parking Meter Rental,2015,3,0,1,Community Space,Green
+Parking Meter Rental,2016,22,0,2,Community Space,Green
+Public Assembly,2012,0,0,0,Community Space,Green
+Public Assembly,2013,0,0,0,Community Space,Green
+Public Assembly,2014,0,0,0,Community Space,Green
+Public Assembly,2016,8,0,1,Community Space,Green
+Public Assembly,2015,17,0,2,Community Space,Green
+Road Cut,2012,36,0,2,Community Space,Green
+Road Cut,2014,40,0,2,Community Space,Green
+Road Cut,2013,44,0,2,Community Space,Green
+Road Cut,2016,46,0,2,Community Space,Green
+Road Cut,2015,49,0,2,Community Space,Green
+Sidewalk Cafe,2012,25,0,2,Community Space,Green
+Sidewalk Cafe,2013,47,0,2,Community Space,Green
+Sidewalk Cafe,2014,51,0,3,Community Space,Green
+Sidewalk Cafe,2016,52,0,3,Community Space,Green
+Sidewalk Cafe,2015,55,0,3,Community Space,Green
+Sidewalk Replace,2013,120,0,3,Community Space,Green
+Sidewalk Replace,2012,121,0,3,Community Space,Green
+Sidewalk Replace,2015,129,0,3,Community Space,Green
+Sidewalk Replace,2014,172,0,3,Community Space,Green
+Sidewalk Replace,2016,176,0,3,Community Space,Green
+Pool / Hot Tub,2014,10,76865.92,1,Residential,Blue
+Pool / Hot Tub,2015,10,88600,1,Residential,Blue
+Pool / Hot Tub,2016,15,113694.92,2,Residential,Blue
+Pool / Hot Tub,2013,16,110895,2,Residential,Blue
+Pool / Hot Tub,2012,21,107167,2,Residential,Blue
+Res. New 1-2 Family,2013,6,806829,1,Residential,Blue
+Res. New 1-2 Family,2015,6,625000,1,Residential,Blue
+Res. New 1-2 Family,2016,6,287000,1,Residential,Blue
+Res. New 1-2 Family,2012,10,1118500,1,Residential,Blue
+Res. New 1-2 Family,2014,14,2257878,2,Residential,Blue
+Res. Remodel/Chg Occ,2012,272,1855577.5,4,Residential,Blue
+Res. Remodel/Chg Occ,2013,409,2669958,4,Residential,Blue
+Res. Remodel/Chg Occ,2016,426,2568201.93,4,Residential,Blue
+Res. Remodel/Chg Occ,2014,555,4590498.75,4,Residential,Blue
+Res. Remodel/Chg Occ,2015,593,3981572.178,4,Residential,Blue
