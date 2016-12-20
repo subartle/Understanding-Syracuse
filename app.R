@@ -26,6 +26,7 @@ library(DT)
 library(d3heatmap)
 library(reshape)
 library(networkD3)
+
 #devtools::install_github("rodazuero/gmapsdistance")
 #devtools::install_github("rstudio/leaflet")
 
@@ -106,17 +107,24 @@ Dat.ZillowChange <-
 
 Dat.211 <-
   read.csv(
-    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/211Data_LatLon.csv"
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/211%20Data_Categories.csv"
   )
+
 
 Dat.Permits <-
   read.csv(
-    "C:/Users/sbartlett/Documents/Application/Understanding-Syracuse/Cleaned/PermitsSummary.csv"
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PermitsSummary.csv"
   )
+
+Dat.Permits2 <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PermitData_Summary.csv"
+  )
+
 
 Dat.PermitsbyDate <-
   read.csv(
-    "C:/Users/sbartlett/Documents/Application/Understanding-Syracuse/Cleaned/PermitsSummarybyDate.csv"
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PermitsSummarybyDate.csv"
   )
 
 #Colors for Dat.NonRes
@@ -1525,6 +1533,25 @@ colnames(Dat.PermitsbyDate) <- "Valuation"
 Dat.PermitsbyDate <-
   Dat.PermitsbyDate[Dat.PermitsbyDate$Valuation > 0, ]
 
+# Provide explicit colors for regions, so they don't get recoded when the
+# different series happen to be ordered differently from year to year.
+# http://andrewgelman.com/2014/09/11/mysterious-shiny-things/
+defaultColors <- c("#3366cc", "#dc3912", "#ff9900", "#109618")
+series <- structure(
+  lapply(defaultColors, function(color) { list(color=color) }),
+  names = levels(Dat.Permits2$Category)
+)
+
+xlim <- list(
+  min = min(Dat.Permits2$Sum.of.Valuation) - 500,
+  max = max(Dat.Permits2$Sum.of.Valuation) + 500
+)
+ylim <- list(
+  min = min(Dat.Permits2$Count.of.Type),
+  max = max(Dat.Permits2$Count.of.Type) + 3
+)
+
+
 # ui.R definition
 ui <- fluidPage(# Set theme
   theme = shinytheme("united"),
@@ -2007,7 +2034,7 @@ ui <- fluidPage(# Set theme
             )
           )),
           fixedRow(column(
-            12, leafletOutput("PrivateInvestmentMap", height = "500px")
+            12, leafletOutput("PrivateInvestmentMap", height = "800px")
           ))
             )
             )
@@ -2349,10 +2376,41 @@ ui <- fluidPage(# Set theme
             "What services currently exist in the city of Syracuse? Where do they exist? Who do they serve? How accessible are they?"
           ),
           h4("Map of 211's listed services located within the city of Syracuse"),
-          fixedRow(column(
-            12,
+          fixedRow(
+            column(
+           3, 
+            h5("LEGEND"),
+            h5("Business Services", style = "color:red"),
+            h5("Education", style = "color:chocolate"),
+            h5("Emergency/Social Services", style = "color:gold"),
+            h5("Food Security", style = "color:lightgreen"),
+            h5("Government", style = "color:chartreuse"),
+            h5("Health & Wellness", style = "color:chartreuse"),
+            h5("Housing", style = "color:lightseagreen"),
+            h5("Legal", style = "color:lightskyblue"),
+            h5("Refugee Services", style = "color:blue"),
+            h5("Transportation", style = "color:darkpurple"),
+            h5("Utilities", style = "color:mediumpurple"),
+            h5("Workforce Training", style = "color:magenta"),
+            h5("Youth", style = "color:maroon")
+            ),
+            column(9,
             leafletOutput("ServicesMap1", height = "700px")
-          ))
+          )),
+          fixedRow(
+            column(3,
+                   h5("Excerpt from final report: One of the largest challenge categories that emerged was 
+                      what we labeled 'Community Connections and Voice.' Looking at the needs of our low-income 
+                      residents and the services that were provided in the city, be it from government departments 
+                      and agencies or from non-profits in the city, there is no lack of services and programs. 
+                      There is, evidently, a gap in the system, however, because services were not being utilized 
+                      to capacity by the residents who needed them. We found that the big disconnect is in knowledge 
+                      of services. Residents who need services are not aware that they exist or where to find information 
+                      about them. The majority of residents who do know about services and programs found them through 
+                      'word of mouth' within their own social networks, and rarely through marketing or advertising efforts. 
+                      Additionally, often times when residents do know about services, they are not able to access them 
+                      for different reasons, such as transportation, child care, or time limitations.")),
+            column(9, plotlyOutput("ServicesBarGraph1")))
         )
           )
           ),
@@ -3309,11 +3367,30 @@ server <- function(input, output, session) {
       
       
       ##############PRIVATE INVESTMENT SERVER##################
-      output$PrivateInvestmentGraph <- renderDygraph({
-        dygraph(Dat.PermitsbyDate) %>%
-          dyRangeSelector()
-      })
-      
+      # yearData <- reactive({
+      #   # Filter to the desired year, and put the columns
+      #   # in the order that Google's Bubble Chart expects
+      #   # them (name, x, y, color, size). Also sort by region
+      #   # so that Google Charts orders and colors the regions
+      #   # consistently.
+      #   df <- Dat.Permits2 %.%
+      #     filter(Year == input$permityear) %.%
+      #     select(Type, Sum.of.Valuation, Count.of.Type) %.%
+      #     arrange(Category)
+      # })
+      # 
+      # output$PrivateInvestmentGraph <- reactive({
+      #   list(
+      #     data = googleDataTable(yearData()),
+      #     options = list(
+      #       title = sprintf(
+      #         "Count vs. Total Valuation",
+      #         input$permityear),
+      #       series = series
+      #     )
+      #   )
+      # })
+      # 
       output$PrivateInvestmentMap <- renderLeaflet({
         Dat.Permits.Sub <-
           Dat.Permits[c(
@@ -3329,7 +3406,8 @@ server <- function(input, output, session) {
           addCircleMarkers(
             lng = Dat.Permits.Sub$Average.of.lat,
             lat = Dat.Permits.Sub$Average.of.lon,
-            color = "mediumseagreen"
+            color = "mediumseagreen",
+            popup = paste(Dat.Permits.Sub$Row.Labels, ": $", Dat.Permits.Sub$Sum.of.Valuation)
           )
         
       })
@@ -3455,13 +3533,13 @@ server <- function(input, output, session) {
             smoothFactor = 0.5,
             color = ~ colorNumeric("Greens", shape.transit$x)(shape.transit$x)
           ) %>%
-          addMarkers(
-            lng = shape.transit$lon,
-            lat = shape.transit$lat,
-            label = shape.transit$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          #addMarkers(
+           # lng = shape.transit$lon,
+            #lat = shape.transit$lat,
+          #  label = shape.transit$NAME,
+           # icon = nhoodIcon,
+            #labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          #) %>%
           addLegend(
             "bottomleft",
             pal = colorNumeric("Greens", shape.transit$x, n = 5),
@@ -3477,13 +3555,13 @@ server <- function(input, output, session) {
                   lat = 43.0481,
                   zoom = 12) %>%
           addProviderTiles("CartoDB.Positron") %>%
-          addMarkers(
-            lng = shape.transportmap3$lon,
-            lat = shape.transportmap3$lat,
-            label = shape.transportmap3$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          # addMarkers(
+          #   lng = shape.transportmap3$lon,
+          #   lat = shape.transportmap3$lat,
+          #   label = shape.transportmap3$NAME,
+          #   icon = nhoodIcon,
+          #   labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          # ) %>%
           addPolygons(
             stroke = FALSE,
             fillOpacity = 0.7,
@@ -3500,13 +3578,13 @@ server <- function(input, output, session) {
                   lat = 43.0481,
                   zoom = 12) %>%
           addProviderTiles("CartoDB.Positron") %>%
-          addMarkers(
-            lng = shape.transportmap4$lon,
-            lat = shape.transportmap4$lat,
-            label = shape.transportmap4$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          # addMarkers(
+          #   lng = shape.transportmap4$lon,
+          #   lat = shape.transportmap4$lat,
+          #   label = shape.transportmap4$NAME,
+          #   icon = nhoodIcon,
+          #   labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          # ) %>%
           addPolygons(
             stroke = FALSE,
             fillOpacity = 0.7,
@@ -3523,13 +3601,13 @@ server <- function(input, output, session) {
                   lat = 43.0481,
                   zoom = 12) %>%
           addProviderTiles("CartoDB.Positron") %>%
-          addMarkers(
-            lng = shape.transportmap5$lon,
-            lat = shape.transportmap5$lat,
-            label = shape.transportmap5$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          # addMarkers(
+          #   lng = shape.transportmap5$lon,
+          #   lat = shape.transportmap5$lat,
+          #   label = shape.transportmap5$NAME,
+          #   icon = nhoodIcon,
+          #   labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          # ) %>%
           addPolygons(
             stroke = FALSE,
             fillOpacity = 0.7,
@@ -3548,13 +3626,13 @@ server <- function(input, output, session) {
                   lat = 43.0481,
                   zoom = 12) %>%
           addProviderTiles("CartoDB.Positron") %>%
-          addMarkers(
-            lng = shape.transportmap6$lon,
-            lat = shape.transportmap6$lat,
-            label = shape.transportmap6$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          # addMarkers(
+          #   lng = shape.transportmap6$lon,
+          #   lat = shape.transportmap6$lat,
+          #   label = shape.transportmap6$NAME,
+          #   icon = nhoodIcon,
+          #   labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          # ) %>%
           addPolygons(
             stroke = FALSE,
             fillOpacity = 0.7,
@@ -3573,13 +3651,13 @@ server <- function(input, output, session) {
                   lat = 43.0481,
                   zoom = 12) %>%
           addProviderTiles("CartoDB.Positron") %>%
-          addMarkers(
-            lng = shape.transportmap7$lon,
-            lat = shape.transportmap7$lat,
-            label = shape.transportmap7$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          # addMarkers(
+          #   lng = shape.transportmap7$lon,
+          #   lat = shape.transportmap7$lat,
+          #   label = shape.transportmap7$NAME,
+          #   icon = nhoodIcon,
+          #   labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          # ) %>%
           addPolygons(
             stroke = FALSE,
             fillOpacity = 0.7,
@@ -3596,13 +3674,13 @@ server <- function(input, output, session) {
                   lat = 43.0481,
                   zoom = 12) %>%
           addProviderTiles("CartoDB.Positron") %>%
-          addMarkers(
-            lng = shape.transportmap8$lon,
-            lat = shape.transportmap8$lat,
-            label = shape.transportmap8$NAME,
-            icon = nhoodIcon,
-            labelOptions = labelOptions(noHide = T, textOnly = TRUE)
-          ) %>%
+          # addMarkers(
+          #   lng = shape.transportmap8$lon,
+          #   lat = shape.transportmap8$lat,
+          #   label = shape.transportmap8$NAME,
+          #   icon = nhoodIcon,
+          #   labelOptions = labelOptions(noHide = T, textOnly = TRUE)
+          # ) %>%
           addPolygons(
             stroke = FALSE,
             fillOpacity = 0.7,
@@ -3623,19 +3701,39 @@ server <- function(input, output, session) {
       
       ################ACCESS TO SERVICES SERVER####################
       output$ServicesMap1 <- renderLeaflet({
+        binpal <- colorFactor(rainbow(14), Dat.211$Category)
         leaflet(shape.Syracuse) %>%
           setView(lng = -76.1474,
                   lat = 43.0481,
-                  zoom = 12) %>%
+                  zoom = 13) %>%
           addProviderTiles("CartoDB.Positron") %>%
           addCircleMarkers(
             lng = Dat.211$lat,
             lat = Dat.211$lon,
             radius = 3,
-            color = "palevioletred",
-            popup = paste(Dat.211$Name, ": ",
-                          Dat.211$AgencyDescription)
-          )
+            color = ~binpal(Dat.211$Category),
+            popup = paste(Dat.211$Name, " (", Dat.211$Category, "): ",
+                          Dat.211$AgencyDescription)) %>%
+            addLegend("bottomleft", pal = binpal, values = Dat.211$Category, title = "Legend", opacity = 1)
+          
+      })
+      
+      output$ServicesBarGraph1 <- renderPlotly({
+        Dat.211$Count <- 1
+        Dat.211$Category <- as.character(Dat.211$Category)
+        Dat.211subset <- as.data.frame(tapply(Dat.211$Count, Dat.211$Category, FUN = sum))
+        colnames(Dat.211subset) <- "Count"
+        Dat.211subset$Category <- row.names(Dat.211subset)
+        binpal <- colorFactor(rainbow(14), Dat.211subset$Category)
+         
+        plot_ly(
+          x = Dat.211subset$Category,
+          y = Dat.211subset$Count,
+          color = Dat.211subset$Category,
+          name = "Syracuse Services",
+          type = "bar"
+        )
+        
       })
       
       
@@ -3742,21 +3840,20 @@ server <- function(input, output, session) {
         compstatgraph <-
           ggplot(data = Dat.Violations, aes(x = Year, fill = Complaint.Status)) +
           geom_bar() +
-          theme(legend.position = 'none') +
           scale_fill_manual(
             values = c(
-              "aquamarine4",
-              "azure2",
-              "aquamarine",
-              "azure",
-              "cyan3",
-              "darkseagreen",
-              "aquamarine3",
-              "azure1",
-              "aquamarine1",
-              "aquamarine2",
-              "cyan2",
-              "darkseagreen1"
+              "khaki",
+              "brown",
+              "goldenrod",
+              "darkgray",
+              "darkkhaki",
+              "gold",
+              "lemonchiffon",
+              "indianred",
+              "bisque",
+              "blue",
+              "lightsalmon",
+              "lightpink"
             )
           ) +
           theme(panel.background = element_blank()) +
