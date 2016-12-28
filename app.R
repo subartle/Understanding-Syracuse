@@ -26,6 +26,7 @@ library(DT)
 library(d3heatmap)
 library(reshape)
 library(networkD3)
+library(corrplot)
 
 #devtools::install_github("rodazuero/gmapsdistance")
 #devtools::install_github("rstudio/leaflet")
@@ -84,48 +85,75 @@ Dat.CleanedViolations <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/ViolationReportArcs.csv"
   )
-
 DAT.ZillowAug <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/dat.Zillow.csv"
   )
-
 Dat.TransportationData <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/TransportationTimesWeekday.csv"
   )
-
 Dat.TransportationData <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/TransportationTimesWeekday.csv"
   )
-
 Dat.ZillowChange <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/Zillow_PercentChange.csv"
   )
-
 Dat.211 <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/211%20Data_Categories.csv"
   )
-
-
 Dat.Permits <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PermitsSummary.csv"
   )
-
 Dat.Permits2 <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PermitData_Summary.csv"
   )
-
-
 Dat.PermitsbyDate <-
   read.csv(
     "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PermitsSummarybyDate.csv"
   )
+Dat.PovertyCorrelations <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/PovertyCorrelations.csv"
+  )
+Dat.OccupancyRates <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOHN_Occupancy.csv"
+  )
+Dat.OccupancyRates.AOIC <- 
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOIC_Occupancy.csv"
+  )
+Dat.IncomeSource.AOHN <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOHN_IncomeSource.csv"
+  )
+Dat.IncomeSource.AOIC <- 
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOIC_IncomeSource.csv"
+  )
+Dat.Kids.AOHN <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOHN_Kids.csv"
+  )
+Dat.Kids.AOIC <- 
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOIC_Kids.csv"
+  )
+Dat.Transportation.AOHN <-
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOHN_Transportation.csv"
+  )
+Dat.Transportation.AOIC <- 
+  read.csv(
+    "https://raw.githubusercontent.com/subartle/Understanding-Syracuse/master/Cleaned/AOIC_Transportation.csv"
+  )
+
 
 #Colors for Dat.NonRes
 Dat.NonRes$Color <-
@@ -1551,6 +1579,47 @@ ylim <- list(
   max = max(Dat.Permits2$Count.of.Type) + 3
 )
 
+#Corrplot (correlation plots)
+Dat.PovertyCorrelations$Census.Tract <- as.numeric(Dat.PovertyCorrelations$Census.Tract)
+Dat.PovertyCorrelations$Total.Number.of.Parcels <- as.numeric(Dat.PovertyCorrelations$Total.Number.of.Parcels)
+Dat.PovertyCorrelations$Pop.16.Years.and.Over <- as.numeric(Dat.PovertyCorrelations$Pop.16.Years.and.Over)
+Dat.PovertyCorrelations$Average.Assessed.Value <- as.numeric(Dat.PovertyCorrelations$Average.Assessed.Value)
+Dat.PovertyCorrelations$Total.Open.Code.Violations <- as.numeric(Dat.PovertyCorrelations$Total.Open.Code.Violations)
+Dat.PovertyCorrelations <- Dat.PovertyCorrelations[1:55,c(1:8, 12:16)]
+colnames(Dat.PovertyCorrelations) <- gsub("\\.", " ", colnames(Dat.PovertyCorrelations))
+rownames(Dat.PovertyCorrelations) <- Dat.PovertyCorrelations[,1]
+Dat.PovertyCorrelations <- Dat.PovertyCorrelations[,2:13]
+Dat.Correlations <- round(cor(Dat.PovertyCorrelations),1)
+
+#boxplot prep
+#Occupancy - Areas of high need
+colnames(Dat.OccupancyRates) <- gsub("\\.", " ", colnames(Dat.OccupancyRates))
+rownames(Dat.OccupancyRates) <- Dat.OccupancyRates[,1]
+Dat.OccupancyRates <- Dat.OccupancyRates[,1:8]
+# - Areas outside of immediate concern
+colnames(Dat.OccupancyRates.AOIC) <- gsub("\\.", " ", colnames(Dat.OccupancyRates.AOIC))
+rownames(Dat.OccupancyRates.AOIC) <- Dat.OccupancyRates.AOIC[,1]
+Dat.OccupancyRates.AOIC <- Dat.OccupancyRates.AOIC[,1:8]
+#Source of Income - Areas of high need
+colnames(Dat.IncomeSource.AOHN) <- gsub("\\.", " ", colnames(Dat.IncomeSource.AOHN))
+rownames(Dat.IncomeSource.AOHN) <- Dat.IncomeSource.AOHN[,1]
+#Source of Income - Outside Areas of high need
+colnames(Dat.IncomeSource.AOIC) <- gsub("\\.", " ", colnames(Dat.IncomeSource.AOIC))
+rownames(Dat.IncomeSource.AOIC) <- Dat.IncomeSource.AOIC[,1]
+#Kids - Areas of high need
+colnames(Dat.Kids.AOHN) <- gsub("\\.", " ", colnames(Dat.Kids.AOHN))
+rownames(Dat.Kids.AOHN) <- Dat.Kids.AOHN[,1]
+Dat.Kids.AOHN <- Dat.Kids.AOHN[,1:3]
+#Kids - Outside Areas of high need
+colnames(Dat.Kids.AOIC) <- gsub("\\.", " ", colnames(Dat.Kids.AOIC))
+rownames(Dat.Kids.AOIC) <- Dat.Kids.AOIC[,1]
+#Transportation - Areas of high need
+colnames(Dat.Transportation.AOHN) <- gsub("\\.", " ", colnames(Dat.Transportation.AOHN))
+rownames(Dat.Transportation.AOHN) <- Dat.Transportation.AOHN[,1]
+Dat.Transportation.AOHN <- Dat.Transportation.AOHN[,1:7]
+#Transportation - Outside Areas of high need
+colnames(Dat.Transportation.AOIC) <- gsub("\\.", " ", colnames(Dat.Transportation.AOIC))
+rownames(Dat.Transportation.AOIC) <- Dat.Transportation.AOIC[,1]
 
 # ui.R definition
 ui <- fluidPage(# Set theme
@@ -2036,9 +2105,116 @@ ui <- fluidPage(# Set theme
           fixedRow(column(
             12, leafletOutput("PrivateInvestmentMap", height = "800px")
           ))
-            )
-            )
             ),
+        
+        ###########OCCUPANCY AND ZONING UI###############
+        tabPanel(
+          "Occupancy and Zoning",
+          h4("Question:"), 
+          h5("How much does occupancy and land use correlate with poverty?"),
+          fixedRow(imageOutput("CorrImage1", height = "1000px")),
+          h4("Correlation Between Rates of Specific Kinds of Occupancy and Rates of Poverty, Unemployment, etc."),
+          fixedRow(
+            column(9,
+            plotOutput("CorrPlot1", height = "600px")),
+            column(3,
+                   h4("Observations:"),
+                   h5(""))
+          ),
+          fixedRow(
+            column(9, 
+            plotOutput("CorrPlot2", height = "600px"))
+          ),
+          fixedRow(imageOutput("CorrImage2", height = "1000px"))
+          ),
+        
+        ###########AREAS OF HIGH NEED UI############
+        tabPanel(
+          "Areas of High Need",
+          h4("Question:"),
+          h5("What are the characteristics of our areas of highest need? How do they vary from eachother? How do they vary from the rest of the city?"),
+          h4("Description:"),
+          h5("'Areas of High Need (as defined and researched by the Syracuse Metropolitan Transportation Council): Each tract for each variable
+             (individuals in poverty, high school diploma or less, vehicle light households, and unemployment) was assigned a value of 0 if it
+             was less than the 75th percentile, and a value of 1 if it was equal to or greater than the 75th percentile, these values were then
+             added to result in a whole number value of 0 to 4. That is, a value of 4 means that each of the four variables were relatively high, 
+             or above the 75th percentile.'"),
+          fixedRow(imageOutput("CorrImage4", height = "1100px")),
+          tags$hr(),
+          h4("Zoning + Occupancy"),
+          fixedRow(imageOutput("CorrImage3", height = "1000px")),
+          tags$hr(),
+          fixedRow(
+            column(6,
+                   plotlyOutput("BoxPlot1", height = "600px")),
+            column(6,
+                   plotlyOutput("BoxPlot2", height = "600px"))),
+          tags$hr(),
+          h4("Proportions of Occupancy Types by Census Tract (Within Areas of High Need)"),
+          fixedRow(
+            column(2, 
+                   numericInput("ObsAHN1", "# of rows:", 7)),
+            column(10,
+                   tableOutput("TableAHN1"))),
+          tags$hr(),
+          h4("Source of Income"),
+          fixedRow(
+            column(6,
+                   plotlyOutput("BoxPlot3", height = "600px")),
+            column(6,
+                   plotlyOutput("BoxPlot4", height = "600px"))),
+          tags$hr(),
+          h4("Proportions of Households Recieving a Type of Income Source by Census Tract (Within Areas of High Need)"),
+          fixedRow(
+            column(2, 
+                   numericInput("ObsAHN2", "# of rows:", 7)),
+            column(10,
+                   tableOutput("TableAHN2"))),
+          tags$hr(),
+          h4("Kids"),
+          fixedRow(
+            column(6,
+                   plotlyOutput("BoxPlot5", height = "600px")),
+            column(6,
+                   plotlyOutput("BoxPlot6", height = "600px"))),
+          tags$hr(),
+          h4("Proportions of Households with 1+ Child Within Age Range by Census Tract (Within Areas of High Need)"),
+          fixedRow(
+            column(2, 
+                   numericInput("ObsAHN3", "# of rows:", 7)),
+            column(10,
+                   tableOutput("TableAHN3"))),
+          tags$hr(),
+          h4("Transportation"),
+          fixedRow(
+            column(6,
+                   plotlyOutput("BoxPlot7", height = "600px")),
+            column(6,
+                   plotlyOutput("BoxPlot8", height = "600px"))),
+          tags$hr(),
+          h4("Proportions of Employed Households by Method of Travel by Census Tract (Within Areas of High Need)"),
+          fixedRow(
+            column(2, 
+                   numericInput("ObsAHN4", "# of rows:", 7)),
+            column(10,
+                   tableOutput("TableAHN4"))),
+          #tags$hr(),
+          #h4("Types of Employment"),
+          #fixedRow(
+          #  column(6,
+          #         plotlyOutput("BoxPlot9", height = "600px")),
+          #  column(6,
+          #         plotlyOutput("BoxPlot10", height = "600px"))),
+          #fixedRow(
+          #  column(6,
+          #         plotlyOutput("BoxPlot11", height = "600px")),
+          #  column(6,
+          #         plotlyOutput("BoxPlot12", height = "600px"))),
+          tags$hr()
+          )
+        )
+      ),
+    
     
     
     ##############COMMUNITY CONNECTION UI##############
@@ -2636,7 +2812,7 @@ server <- function(input, output, session) {
       )
     }
   }, deleteFile = FALSE)
-  
+
   
   #########PHYSICAL ASSETS SERVER####
   # Observes the second feature input for a change
@@ -3367,30 +3543,6 @@ server <- function(input, output, session) {
       
       
       ##############PRIVATE INVESTMENT SERVER##################
-      # yearData <- reactive({
-      #   # Filter to the desired year, and put the columns
-      #   # in the order that Google's Bubble Chart expects
-      #   # them (name, x, y, color, size). Also sort by region
-      #   # so that Google Charts orders and colors the regions
-      #   # consistently.
-      #   df <- Dat.Permits2 %.%
-      #     filter(Year == input$permityear) %.%
-      #     select(Type, Sum.of.Valuation, Count.of.Type) %.%
-      #     arrange(Category)
-      # })
-      # 
-      # output$PrivateInvestmentGraph <- reactive({
-      #   list(
-      #     data = googleDataTable(yearData()),
-      #     options = list(
-      #       title = sprintf(
-      #         "Count vs. Total Valuation",
-      #         input$permityear),
-      #       series = series
-      #     )
-      #   )
-      # })
-      # 
       output$PrivateInvestmentMap <- renderLeaflet({
         Dat.Permits.Sub <-
           Dat.Permits[c(
@@ -3411,6 +3563,170 @@ server <- function(input, output, session) {
           )
         
       })
+      
+      ##########OCCUPANCY AND ZONING SERVER#######
+      output$CorrImage1 <- renderImage({
+        list(
+          src = "Understanding-Syracuse/Images/PovertyOccupancy.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:")
+          }, deleteFile = FALSE)
+      
+
+      output$CorrPlot1 <- renderPlot({
+        corrplot(Dat.Correlations, type = "lower", order = "hclust", tl.col="black", tl.srt = 45)
+      })
+      
+      output$CorrPlot2 <- renderPlot({
+        corrplot(Dat.Correlations, method = "number", type = "lower", order = "hclust", tl.col="black", tl.srt = 45)
+      })
+      
+      output$CorrImage2 <- renderImage({
+        list(
+          src = "Understanding-Syracuse/Images/OccupancyProportions.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:")
+      }, deleteFile = FALSE)
+      
+
+      
+      ##########AREAS OF HIGH NEED SERVER#########
+      output$CorrImage4 <- renderImage({
+        list(
+          src = "Understanding-Syracuse/Images/Areas of High Need.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:")
+      }, deleteFile = FALSE)
+      
+      output$CorrImage3 <- renderImage({
+        list(
+          src = "Understanding-Syracuse/Images/Zoning.png",
+          filetype = "image/png",
+          alt = "Drats! Something went wrong D:")
+      }, deleteFile = FALSE)
+      
+      output$BoxPlot1 <- renderPlotly({
+        p <- plot_ly(y = Dat.OccupancyRates$`Occupied Commercial`, name = "Occ. Comm.", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.OccupancyRates$`Occupied Public`, name = "Occ. Public", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates$`Occupied Other`, name = "Occ. Other", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates$`Owner Occupied`, name = "Owner Occ.", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates$`Rental Occupied`, name = "Renter Occ.", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates$`Vacant Property`, name = "Vacant", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates$`Parking and Lots`, name = "Vacant Lot", type = "box" ) %>%
+          layout(
+            title = "Proportion of Occupancy Types within Areas of High Need (AHN)",
+            yaxis = list(title = "Proportions of CTs in AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$BoxPlot2 <- renderPlotly({
+        p <- plot_ly(y = Dat.OccupancyRates.AOIC$`Occupied Commercial`, name = "Occ. Comm.", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.OccupancyRates.AOIC$`Occupied Public`, name = "Occ. Public", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates.AOIC$`Occupied Other`, name = "Occ. Other", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates.AOIC$`Owner Occupied`, name = "Owner Occ.", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates.AOIC$`Rental Occupied`, name = "Renter Occ.", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates.AOIC$`Vacant Property`, name = "Vacant", type = "box" ) %>%
+          add_trace(y = Dat.OccupancyRates.AOIC$`Parking and Lots`, name = "Vacant Lot", type = "box" ) %>%
+          layout(
+            title = "Proportion of Occupancy Types Outside of AHN",
+            yaxis = list(title = "Proportions of CTs outside AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$TableAHN1 <- renderTable({
+        head(Dat.OccupancyRates, n = input$ObsAHN1)
+      })
+      
+      output$BoxPlot3 <- renderPlotly({
+        p <- plot_ly(y = Dat.IncomeSource.AOHN$`With earnings`, name = "Earnings", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.IncomeSource.AOHN$`With Social Security`, name = "Soc. Sec.", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOHN$`With retirement income`, name = "Retirement", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOHN$`With Supplemental Security Income`, name = "SSI", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOHN$`With cash public assistance income`, name = "Pub. Assist", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOHN$`With Food Stamp SNAP benefits in the past 12 months`, name = "SNAP", type = "box" ) %>%
+          layout(
+            title = "Proportion of Households Recieving an Income Source Within AHN",
+            yaxis = list(title = "Proportions of CTs in AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$BoxPlot4 <- renderPlotly({
+        p <- plot_ly(y = Dat.IncomeSource.AOIC$`With earnings`, name = "Earnings", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.IncomeSource.AOIC$`With Social Security`, name = "Soc. Sec.", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOIC$`With retirement income`, name = "Retirement", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOIC$`With Supplemental Security Income`, name = "SSI", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOIC$`With cash public assistance income`, name = "Pub. Assist", type = "box" ) %>%
+          add_trace(y = Dat.IncomeSource.AOIC$`With Food Stamp SNAP benefits in the past 12 months`, name = "SNAP", type = "box" ) %>%
+          layout(
+            title = "Proportion of Households Recieving an Income Source Outside AHN",
+            yaxis = list(title = "Proportions of CTs outside AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$TableAHN2 <- renderTable({
+        head(Dat.IncomeSource.AOHN, n = input$ObsAHN2)
+      })
+      
+      output$BoxPlot5 <- renderPlotly({
+        p <- plot_ly(y = Dat.Kids.AOHN$`All parents of kids 6 or less in family in labor force`, name = "Rate of parents with kids ages 1 - 6", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.Kids.AOHN$`All parents of kids 6 to 17 in family in labor force`, name = "Rate of parents with kids ages 6 - 17", type = "box" ) %>%
+          layout(
+            title = "Proportion of Labor Force with 1+ Child Within AHN",
+            yaxis = list(title = "Proportions of CTs in AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$BoxPlot6 <- renderPlotly({
+        p <- plot_ly(y = Dat.Kids.AOIC$`All parents of kids 6 or less in family in labor force`, name = "Rate of parents with kids (ages 1 - 6)", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.Kids.AOIC$`All parents of kids 6 to 17 in family in labor force`, name = "Rate of parents with kids (ages 6 - 17)", type = "box" ) %>%
+          layout(
+            title = "Proportion of Labor Force with 1+ Child Outside AHN",
+            yaxis = list(title = "Proportions of CTs outside AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$TableAHN3 <- renderTable({
+        head(Dat.Kids.AOHN, n = input$ObsAHN3)
+      })
+      
+      output$BoxPlot7 <- renderPlotly({
+        p <- plot_ly(y = Dat.Transportation.AOHN$`Car  truck  or van    drove alone`, name = "Drove Alone", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.Transportation.AOHN$`Car  truck  or van    carpooled` , name = "Carpooled", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOHN$`Public transportation  excluding taxicab ` , name = "Public Trans.", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOHN$Walked , name = "Walked", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOHN$`Other means` , name = "Other", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOHN$`Worked at home` , name = "Worked @ Home", type = "box" ) %>%
+          layout(
+            title = "Proportion of Employed Within AHN: Method of Transportation",
+            yaxis = list(title = "Proportions of CTs in AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$BoxPlot8 <- renderPlotly({
+        p <- plot_ly(y = Dat.Transportation.AOIC$`Car  truck  or van    drove alone`, name = "Drove Alone", showlegend = F, type = "box") %>%
+          add_trace(y = Dat.Transportation.AOIC$`Car  truck  or van    carpooled` , name = "Carpooled", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOIC$`Public transportation  excluding taxicab ` , name = "Public Trans.", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOIC$Walked , name = "Walked", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOIC$`Other means` , name = "Other", type = "box" ) %>%
+          add_trace(y = Dat.Transportation.AOIC$`Worked at home` , name = "Worked @ Home", type = "box" ) %>%
+          layout(
+            title = "Proportion of Employed Outside AHN: Method of Transportation",
+            yaxis = list(title = "Proportions of CTs outside AHN (Out of 1)", range = c(0, 1))
+          )
+        p
+      })
+      
+      output$TableAHN4 <- renderTable({
+        head(Dat.Transportation.AOHN, n = input$ObsAHN4)
+      })
+      
       
       #########DOCE SERVER####
       output$CodeViolationPic <- renderImage({
